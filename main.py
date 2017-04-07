@@ -4,6 +4,7 @@ from filecopy import filecopy
 from drawPhiGrid import drawPhiGrid
 from calcHistogram import calcHistograms, calcHistogramsNormalized, calcHistogramsPlusImg
 from faceDetection import faceDetection
+from cropImgs import cropBlackBorders
 import cv2
 import os
 
@@ -14,7 +15,7 @@ def main():
 #    drawPhiGrid()
 #    calcHistogramsNormalized()
 #    calcHistogramsPlusImg()
-    faceDetection()
-
+#    faceDetection()
+    cropBlackBorders()
 if __name__ == '__main__':main()
 
