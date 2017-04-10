@@ -1,28 +1,30 @@
 import cv2
 import os
-from readImgs import readImgNames, readImg
+from read_imgs import read_img_names, read_img
 
-def drawPhiGrid():
-    print("drawPhiGrid")
+def draw_phi_grid(directory):
+    '''
+    draws phi grid into image. 
+    saves images in subdirectory ./phigrid
+    :param directory: path to images (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped')
+    :return: 
+    '''
+    print("draw_phi_grid")
 
-    directory = 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\phigrid'
-
-    imgNames = readImgNames(directory)
+    imgNames = read_img_names(directory)
 
     for imgName in imgNames:
-        img = readImg(os.path.join(directory, imgName))
-        img = drawGrid(img)
+        img = read_img(os.path.join(directory, imgName))
+        img = draw_grid(img)
 
         #save img
-        if not os.path.exists(directory + '\\modified\\'):
-            os.makedirs(directory + '\\modified\\')
+        if not os.path.exists(directory + '\\phigrid\\'):
+            os.makedirs(directory + '\\phigrid\\')
 
-        imgPath = directory + '\\modified\\' + imgName
+        imgPath = directory + '\\phigrid\\' + imgName
         success = cv2.imwrite(imgPath, img)
 
-    print("Finished")
-
-def drawGrid(img):
+def draw_grid(img):
 
     height, width, channels = img.shape
     ratio = 0.618

@@ -1,7 +1,7 @@
 import cv2
 import os
 
-def readImgs(directory):
+def read_imgs(directory):
 
     imgs = dict()
     for file in os.listdir(directory):
@@ -11,7 +11,7 @@ def readImgs(directory):
 
     return imgs
 
-def readImgNames(directory):
+def read_img_names(directory):
 
     imgNames = []
     for file in os.listdir(directory):
@@ -20,6 +20,6 @@ def readImgNames(directory):
 
     return imgNames
 
-def readImg(imgPath):
+def read_img(imgPath):
     img = cv2.imread(imgPath)
     return img

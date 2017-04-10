@@ -3,20 +3,20 @@ import cv2
 import math
 import numpy as np
 from matplotlib import pyplot as plt
-from readImgs import readImgNames, readImg
+from read_imgs import read_img_names, read_img
 
-def cropBlackBorders():
+def crop_black_borders(directory):
     """
-        crops image so that there are no black borders around real img and saves it into folder ./cropped/
+    crops black borders around image. saves it into folder ./cropped/
+    :param directory: directory: path to image  (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting')
     :return: 
     """
-    directory = 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting'
-
-    imgNames = readImgNames(directory)
+    print('crop_black_borders')
+    imgNames = read_img_names(directory)
 
     for imgName in imgNames:
-        img = readImg(os.path.join(directory, imgName))
-        #img = readImg('C:\\Users\\Andreas\\Desktop\\test.jpg')
+        img = read_img(os.path.join(directory, imgName))
+        #img = read_img('C:\\Users\\Andreas\\Desktop\\test.jpg')
 
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -63,29 +63,29 @@ def cropBlackBorders():
 
         imgPath = directory + '\\cropped\\' + imgName
         success = cv2.imwrite(imgPath, img)
+    print('finished')
 
+    '''
+    #DEBUG Visualization
+    plt.figure(1)
+    plt.subplot(311)
+    plt.imshow(edges, 'gray')
 
-        '''
-        plt.figure(1)
-        plt.subplot(311)
-        plt.imshow(edges, 'gray')
+    plt.subplot(312)
+    plt.imshow(closing, 'gray')
+    plt.title('closing')
 
-        plt.subplot(312)
-        plt.imshow(closing, 'gray')
-        plt.title('closing')
+    plt.subplot(313)
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    plt.title('image')
 
-        plt.subplot(313)
-        plt.imshow(cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-        plt.title('image')
-
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
-        plt.show()
-        '''
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    plt.show()
+    '''
 
 def find_horizontal_img_border(img_binary):
     """
-    
     :param img_binary: a binary image where real scene content is white and all unimportant content black (which should be cropped) 
     :return: row_idx_top, row_idx_bottom where real scene starts, ends
     """
@@ -125,10 +125,9 @@ def find_horizontal_img_border(img_binary):
 
 def find_vertical_img_border(img_binary):
     """
-
-        :param img_binary: a binary image where real scene content is white and all unimportant content black (which should be cropped) 
-        :return: col_idx_left, col_idx_right where real scene starts, ends
-        """
+    :param img_binary: a binary image where real scene content is white and all unimportant content black (which should be cropped) 
+    :return: col_idx_left, col_idx_right where real scene starts, ends
+    """
     height, width = img_binary.shape
     # check for vertical lines
     #from left to right
