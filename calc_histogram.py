@@ -100,3 +100,29 @@ def calc_histograms_plus_img(directory):
         plt.savefig(imgPath)
 
         plt.clf()
+
+
+def calc_histograms_bw(directory):
+    '''
+    calc grayscale histograms of images in directory. saves them into ./histograms/imgname_histogram.jpg
+    :param directory: path to images  (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped')
+    :return: 
+    '''
+    print('calc_histograms_bw')
+
+    imgNames = read_img_names(directory)
+
+    for imgName in imgNames:
+        img = read_img(os.path.join(directory, imgName))
+        gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        plt.hist(gray_image.ravel(), 256, [0, 256]);
+        #plt.show()
+
+        # save img
+        if not os.path.exists(directory + '\\histograms\\grayscale\\'):
+            os.makedirs(directory + '\\histograms\\grayscale\\')
+
+        imgPath = directory + '\\histograms\\grayscale\\' + imgName.split('.jpg')[0] + '_histogram.png'
+        plt.savefig(imgPath)
+        plt.clf()
