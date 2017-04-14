@@ -18,8 +18,7 @@ def main():
 #    calc_histograms(directory_cropped)
 #    calc_histograms_normalized(directory_cropped)
 #    calc_histograms_plus_img(directory_cropped)
-    calc_histograms_bw(directory_cropped)
-#    face_detection(directory_cropped)
-
+#    calc_histograms_bw(directory_cropped)
+    face_detection(directory_cropped)
 if __name__ == '__main__':main()
 
