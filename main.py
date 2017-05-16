@@ -4,7 +4,7 @@ from draw_phi_grid import draw_phi_grid
 from calc_histogram import calc_histograms, calc_histograms_plus_img, calc_histograms_normalized, calc_histograms_bw
 from face_detection import face_detection, face_to_img_ratios_to_csv
 from crop_imgs import crop_black_borders
-from selectTrainingData import selectTrainingsData
+from selectTrainingAndTestData import selectTrainingAndTestData
 import cv2
 import os
 
@@ -15,7 +15,7 @@ def main():
     directory_root = 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images'
 
     #preprocessing
-    selectTrainingsData(os.path.join(directory_root, 'interesting'), os.path.join(directory_root, 'uninteresting'), 50, 500, os.path.join(directory_root, 'trainingData'))
+    selectTrainingAndTestData(os.path.join(directory_root, 'interesting'), os.path.join(directory_root, 'uninteresting'), os.path.join(directory_root, 'trainingData'), os.path.join(directory_root, 'testData'))
     #calculate features
 
     #train svm
