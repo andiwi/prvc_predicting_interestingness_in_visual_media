@@ -116,7 +116,6 @@ def detect_faces(img, face_frontal_cascade = None, face_profile_cascade = None):
 def face_detection(directory, face_frontal_cascade = None, face_profile_cascade = None):
     '''
     detects faces with viola jones algorithm using frontal face and profileface haar features. 
-    DEBUG: saves images into ./faces/
     :param directory: path to images (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped')
     :return: imgs_feature_matrix numpy array columns are numberOfFaces, distance of biggest face center to nearest rule of thirds grid corner, x,y,w,h, x,y,w,h, ...
     '''
@@ -162,25 +161,7 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
 
         imgs_feature_matrix.append(faces)
         face_count.append(len(rect_faces))
-        '''
-        #DEBUG
-        for rect in rect_faces_frontal:
-            cv2.rectangle(img, (rect.x, rect.y), (rect.x + rect.w, rect.y + rect.h), (255, 0, 0), 2)
-        for rect in rect_faces_profile:
-            cv2.rectangle(img, (rect.x, rect.y), (rect.x + rect.w, rect.y + rect.h), (0, 255, 0), 2)
 
-        # draw all final rects
-        for rect in rect_faces_final:
-            cv2.rectangle(img, (rect.x, rect.y), (rect.x + rect.w, rect.y + rect.h), (0, 0, 255), 2)
-        
-        if rect_faces_final:
-            # save img
-            if not os.path.exists(directory + '\\faces\\'):
-                os.makedirs(directory + '\\faces\\')
-
-            imgPath = directory + '\\faces\\' + imgName
-            success = cv2.imwrite(imgPath, img)
-        '''
     imgs_feature_matrix_np = np.asarray(imgs_feature_matrix)
     #fill cells in numpy array with zeros
     imgs_feature_matrix_np = numpy_fillwithzeros(imgs_feature_matrix_np)
