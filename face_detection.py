@@ -5,6 +5,7 @@ import csv
 from np_helper import numpy_fillwithzeros
 from Geometry import Rect
 from read_imgs import read_img_names, read_img
+from rule_of_thirds import distance_to_grid_corner
 
 def face_to_img_ratios_to_csv(directory, face_frontal_cascade = None, face_profile_cascade = None):
     '''
@@ -117,7 +118,7 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
     detects faces with viola jones algorithm using frontal face and profileface haar features. 
     DEBUG: saves images into ./faces/
     :param directory: path to images (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped')
-    :return: imgs_feature_matrix numpy array columns are numberOfFaces, x,y,w,h, x,y,w,h, ...
+    :return: imgs_feature_matrix numpy array columns are numberOfFaces, distance of biggest face center to nearest rule of thirds grid corner, x,y,w,h, x,y,w,h, ...
     '''
     directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
     if face_frontal_cascade is None:
@@ -131,6 +132,7 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
 
 
     face_count = [] #number of faces per img
+    rule_of_thirds_distance = [] #smallest euclidean distance between center of biggest face to rule of thirds corner
     imgs_feature_matrix = []
 
     for imgName in imgNames:
@@ -144,11 +146,19 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
         #append faces to feature matrix
         #convert rect list to list with entries x,y,w,h entries
         faces = []
+        first_rect = True
         for rect in rect_faces:
             faces.insert(len(faces), rect.x)
             faces.insert(len(faces), rect.y)
             faces.insert(len(faces), rect.w)
             faces.insert(len(faces), rect.h)
+
+            if(first_rect):
+                first_rect = False
+                rule_of_thirds_distance.append(distance_to_grid_corner(img, np.array([rect.x+rect.w/2, rect.y+rect.h/2])))
+
+        if(len(rect_faces) == 0):
+            rule_of_thirds_distance.append(0)
 
         imgs_feature_matrix.append(faces)
         face_count.append(len(rect_faces))
@@ -175,6 +185,10 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
     #fill cells in numpy array with zeros
     imgs_feature_matrix_np = numpy_fillwithzeros(imgs_feature_matrix_np)
     face_count_np = np.asarray(face_count)
+    rule_of_thirds_distance_np = np.asarray(rule_of_thirds_distance)
+
+    imgs_feature_matrix_np = np.c_[rule_of_thirds_distance_np, imgs_feature_matrix_np]
     imgs_feature_matrix_np = np.c_[face_count_np, imgs_feature_matrix_np]
+
     return imgs_feature_matrix_np
 

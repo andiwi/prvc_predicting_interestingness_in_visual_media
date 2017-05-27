@@ -41,12 +41,13 @@ def main():
     #calculate features
     #
     if(calc_features):
-        #calc faces
+        #calc face features
         face_features_interesting = face_detection(os.path.join(dir_training_data, 'interesting'))
         face_features_uninteresting = face_detection(os.path.join(dir_training_data, 'uninteresting'))
 
         face_features_interesting_test = face_detection(os.path.join(dir_test_data, 'interesting'))
         face_features_uninteresting_test = face_detection(os.path.join(dir_test_data, 'uninteresting'))
+
 
         #
         # save features
