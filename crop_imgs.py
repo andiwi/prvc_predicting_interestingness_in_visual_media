@@ -7,7 +7,7 @@ from read_imgs import read_img_names, read_img
 
 def crop_black_borders(directory):
     """
-    crops black borders around image. saves it into folder ./cropped/
+    crops black borders around image. and replaces imgages with cropped ones
     :param directory: directory: path to image  (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting')
     :return: 
     """
@@ -58,10 +58,14 @@ def crop_black_borders(directory):
             img = img[row_idx_top:row_idx_bottom, col_idx_left:col_idx_right]
 
         # save img
+        '''
         if not os.path.exists(directory + '\\cropped\\'):
             os.makedirs(directory + '\\cropped\\')
 
         imgPath = directory + '\\cropped\\' + imgName
+        success = cv2.imwrite(imgPath, img)
+        '''
+        imgPath = os.path.join(directory, imgName)
         success = cv2.imwrite(imgPath, img)
     print('finished')
 
