@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import os
 import csv
+from np_helper import numpy_fillwithzeros
 from Geometry import Rect
 from read_imgs import read_img_names, read_img
 
@@ -113,9 +114,10 @@ def detect_faces(img, face_frontal_cascade = None, face_profile_cascade = None):
 
 def face_detection(directory, face_frontal_cascade = None, face_profile_cascade = None):
     '''
-    detects faces with viola jones algorithm using frontal face and profileface haar features. saves images into ./faces/
+    detects faces with viola jones algorithm using frontal face and profileface haar features. 
+    DEBUG: saves images into ./faces/
     :param directory: path to images (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped')
-    :return: 
+    :return: imgs_feature_matrix numpy array columns are numberOfFaces, x,y,w,h, x,y,w,h, ...
     '''
     directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
     if face_frontal_cascade is None:
@@ -127,11 +129,30 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
 
     imgNames = read_img_names(directory)
 
+
+    face_count = [] #number of faces per img
+    imgs_feature_matrix = []
+
     for imgName in imgNames:
         img = read_img(os.path.join(directory, imgName))
 
-        rect_faces_final, rect_faces_frontal, rect_faces_profile = detect_faces(img, face_frontal_cascade, face_profile_cascade)
+        rect_faces, rect_faces_frontal, rect_faces_profile = detect_faces(img, face_frontal_cascade, face_profile_cascade)
 
+        #sort list in descending order
+        rect_faces.sort(key=lambda rect: rect.area(), reverse=True)
+
+        #append faces to feature matrix
+        #convert rect list to list with entries x,y,w,h entries
+        faces = []
+        for rect in rect_faces:
+            faces.insert(len(faces), rect.x)
+            faces.insert(len(faces), rect.y)
+            faces.insert(len(faces), rect.w)
+            faces.insert(len(faces), rect.h)
+
+        imgs_feature_matrix.append(faces)
+        face_count.append(len(rect_faces))
+        '''
         #DEBUG
         for rect in rect_faces_frontal:
             cv2.rectangle(img, (rect.x, rect.y), (rect.x + rect.w, rect.y + rect.h), (255, 0, 0), 2)
@@ -141,7 +162,7 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
         # draw all final rects
         for rect in rect_faces_final:
             cv2.rectangle(img, (rect.x, rect.y), (rect.x + rect.w, rect.y + rect.h), (0, 0, 255), 2)
-
+        
         if rect_faces_final:
             # save img
             if not os.path.exists(directory + '\\faces\\'):
@@ -149,3 +170,11 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
 
             imgPath = directory + '\\faces\\' + imgName
             success = cv2.imwrite(imgPath, img)
+        '''
+    imgs_feature_matrix_np = np.asarray(imgs_feature_matrix)
+    #fill cells in numpy array with zeros
+    imgs_feature_matrix_np = numpy_fillwithzeros(imgs_feature_matrix_np)
+    face_count_np = np.asarray(face_count)
+    imgs_feature_matrix_np = np.c_[face_count_np, imgs_feature_matrix_np]
+    return imgs_feature_matrix_np
+
