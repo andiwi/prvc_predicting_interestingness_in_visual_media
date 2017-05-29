@@ -137,8 +137,8 @@ def main():
     C = 1.0  # SVM regularization parameter
     svc = svm.SVC(kernel='linear', C=C) #Accuracy: 0.87 (+/- 0.07)
     #svc = svm.SVC(kernel='linear', C=C, class_weight={1:10}) #Accuracy: 0.77 (+/- 0.13)
-    scores = cross_val_score(svc, X, y, cv=5)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    scores = cross_val_score(svc, X, y, cv=10, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print("finished.")
 
 
