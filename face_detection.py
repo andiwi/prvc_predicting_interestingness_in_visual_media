@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import os
 import csv
+
 from np_helper import numpy_fillwithzeros
 from Geometry import Rect
 from read_imgs import read_img_names, read_img
@@ -113,11 +114,14 @@ def detect_faces(img, face_frontal_cascade = None, face_profile_cascade = None):
 
     return rect_faces_final, rect_faces_frontal, rect_faces_profile
 
-def face_detection(directory, face_frontal_cascade = None, face_profile_cascade = None):
+def face_detection(directory, face_frontal_cascade = None, face_profile_cascade = None): #TODO rename method to face_feature_calculation
     '''
     detects faces with viola jones algorithm using frontal face and profileface haar features. 
+    NOTE: returns unscaled feature vectors (numpy arrays)
     :param directory: path to images (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped')
-    :return: imgs_feature_matrix numpy array columns are numberOfFaces, distance of biggest face center to nearest rule of thirds grid corner, x,y,w,h, x,y,w,h, ...
+    :return: face_count_np              ...number of faces
+             rule_of_thirds_distance_np ...distance of biggest face center to nearest rule of thirds grid corner
+             imgs_feature_matrix        ...face bounding boxes x,y,w,h, x,y,w,h,...
     '''
     directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
     if face_frontal_cascade is None:
@@ -165,11 +169,12 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
     imgs_feature_matrix_np = np.asarray(imgs_feature_matrix)
     #fill cells in numpy array with zeros
     imgs_feature_matrix_np = numpy_fillwithzeros(imgs_feature_matrix_np)
+
     face_count_np = np.asarray(face_count)
     rule_of_thirds_distance_np = np.asarray(rule_of_thirds_distance)
 
-    imgs_feature_matrix_np = np.c_[rule_of_thirds_distance_np, imgs_feature_matrix_np]
-    imgs_feature_matrix_np = np.c_[face_count_np, imgs_feature_matrix_np]
+    #imgs_feature_matrix_np = np.c_[rule_of_thirds_distance_np, imgs_feature_matrix_np]
+    #imgs_feature_matrix_np = np.c_[face_count_np, imgs_feature_matrix_np]
 
-    return imgs_feature_matrix_np
+    return face_count_np, rule_of_thirds_distance_np, imgs_feature_matrix_np
 

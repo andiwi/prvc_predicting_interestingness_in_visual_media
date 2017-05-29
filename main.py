@@ -12,11 +12,19 @@ import np_helper
 import matplotlib.pyplot as plt
 import cv2
 import os
+from sklearn.model_selection import cross_val_score
+from sklearn import preprocessing
 
 def main():
-    preprocessing = False
-    calc_features = True
+    do_preprocessing = False
+    calc_features = False
     load_features = True
+
+    #which features should be used
+    use_face_count = True
+    use_rot_distance = True
+    use_face_bb = True
+
 
     directory_original = 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting'
     directory_cropped = 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped'
@@ -28,149 +36,111 @@ def main():
     #
     #preprocessing
     #
-    if(preprocessing):
-        selectTrainingAndTestData(os.path.join(directory_root, 'interesting'), os.path.join(directory_root, 'uninteresting'), dir_training_data, dir_test_data, interesting_training_samples=10, interesting_test_samples=10, uninteresting_training_samples=100, uninteresting_test_samples=100)
+    if(do_preprocessing):
+        selectTrainingAndTestData(os.path.join(directory_root, 'interesting'), os.path.join(directory_root, 'uninteresting'), dir_training_data, dir_test_data, interesting_training_samples=50, interesting_test_samples=50, uninteresting_training_samples=500, uninteresting_test_samples=500)
         crop_black_borders(os.path.join(dir_training_data, 'interesting'))
         crop_black_borders(os.path.join(dir_training_data, 'uninteresting'))
         crop_black_borders(os.path.join(dir_test_data, 'interesting'))
         crop_black_borders(os.path.join(dir_test_data, 'uninteresting'))
-
-    #img_names = read_img_names(dir_training_data)
 
     #
     #calculate features
     #
     if(calc_features):
         #calc face features
-        face_features_interesting = face_detection(os.path.join(dir_training_data, 'interesting'))
-        face_features_uninteresting = face_detection(os.path.join(dir_training_data, 'uninteresting'))
-
-        face_features_interesting_test = face_detection(os.path.join(dir_test_data, 'interesting'))
-        face_features_uninteresting_test = face_detection(os.path.join(dir_test_data, 'uninteresting'))
-
+        face_count_interesting, rot_distance_interesting, face_bb_interesting = face_detection(os.path.join(dir_training_data, 'interesting'))
+        face_count_uninteresting, rot_distance_uninteresting, face_bb_uninteresting = face_detection(os.path.join(dir_training_data, 'uninteresting'))
 
         #
-        # save features
+        # save unscaled features
         #
-        np.savetxt(os.path.join(dir_training_data, 'face_features_interesting.gz'), face_features_interesting)
-        np.savetxt(os.path.join(dir_training_data, 'face_features_uninteresting.gz'), face_features_uninteresting)
+        np.savetxt(os.path.join(dir_training_data, 'face_count_interesting.gz'), face_count_interesting)
+        np.savetxt(os.path.join(dir_training_data, 'rot_distance_interesting.gz'), rot_distance_interesting)
+        np.savetxt(os.path.join(dir_training_data, 'face_bb_interesting.gz'), face_bb_interesting)
 
-        np.savetxt(os.path.join(dir_test_data, 'face_features_interesting.gz'), face_features_interesting_test)
-        np.savetxt(os.path.join(dir_test_data, 'face_features_uninteresting.gz'), face_features_uninteresting_test)
+        np.savetxt(os.path.join(dir_training_data, 'face_count_uninteresting.gz'), face_count_uninteresting)
+        np.savetxt(os.path.join(dir_training_data, 'rot_distance_uninteresting.gz'), rot_distance_uninteresting)
+        np.savetxt(os.path.join(dir_training_data, 'face_bb_uninteresting.gz'), face_bb_uninteresting)
 
     if(load_features):
         #
         # load features from files
         #
-        face_features_interesting = np.loadtxt(os.path.join((dir_training_data), 'face_features_interesting.gz'))
-        face_features_uninteresting = np.loadtxt(os.path.join((dir_training_data), 'face_features_uninteresting.gz'))
+        face_count_interesting = np.loadtxt(os.path.join((dir_training_data), 'face_count_interesting.gz'))
+        rot_distance_interesting = np.loadtxt(os.path.join((dir_training_data), 'rot_distance_interesting.gz'))
+        face_bb_interesting = np.loadtxt(os.path.join((dir_training_data), 'face_bb_interesting.gz'))
 
-        face_features_interesting_test = np.loadtxt(os.path.join((dir_test_data), 'face_features_interesting.gz'))
-        face_features_uninteresting_test = np.loadtxt(os.path.join((dir_test_data), 'face_features_uninteresting.gz'))
+        face_count_uninteresting = np.loadtxt(os.path.join((dir_training_data), 'face_count_uninteresting.gz'))
+        rot_distance_uninteresting = np.loadtxt(os.path.join((dir_training_data), 'rot_distance_uninteresting.gz'))
+        face_bb_uninteresting = np.loadtxt(os.path.join((dir_training_data), 'face_bb_uninteresting.gz'))
 
     #
-    # concatenate features
+    # scale features (because svm is not scale invariant)
+    #
+    face_count_interesting = preprocessing.scale(face_count_interesting)
+    rot_distance_interesting = preprocessing.scale(rot_distance_interesting)
+    face_bb_interesting = preprocessing.scale(face_bb_interesting)
+
+    face_count_uninteresting = preprocessing.scale(face_count_uninteresting)
+    rot_distance_uninteresting = preprocessing.scale(rot_distance_uninteresting)
+    face_bb_uninteresting = preprocessing.scale(face_bb_uninteresting)
+
+
+    #
+    # concatenate face bb features
     #
 
-    #find matrix with maximal columns and reshape other matrixe before concatenating them
-    face_features_interesting, face_features_uninteresting = np_helper_fillcolswithzeros(face_features_interesting, face_features_uninteresting)
-    face_features = np.concatenate((face_features_interesting, face_features_uninteresting), axis=0)
+    face_count = np.concatenate((face_count_interesting, face_count_uninteresting), axis=0)
+    rot_distance = np.concatenate((rot_distance_interesting, rot_distance_uninteresting), axis=0)
 
-    face_features_interesting_test, face_features_uninteresting_test = np_helper.fillcolswithzeros(face_features_interesting_test, face_features_uninteresting_test)
-    face_features_test = np.concatenate((face_features_interesting_test, face_features_uninteresting_test), axis=0)
+    # bring bounding box feature matrices to same shape
+    # find matrix with maximal columns and reshape other matrixe before concatenating them
+    face_bb_interesting, face_bb_uninteresting = np_helper.numpy_fillcolswithzeros(face_bb_interesting, face_bb_uninteresting)
+    face_bb = np.concatenate((face_bb_interesting, face_bb_uninteresting), axis=0)
 
-    #reshape, so that training and test set have same number of columns
-    face_features, face_features_test = np_helper.numpy_fillcolswithzeros(face_features, face_features_test)
+
+    #
+    # generate final feature matrix
+    #
+    if(use_face_count):
+        try:
+            X = np.c_[X, face_count]
+        except NameError:
+            X = face_count
+
+    if(use_rot_distance):
+        try:
+            X = np.c_[X, rot_distance]
+        except NameError:
+            X = rot_distance
+
+    if(use_face_bb):
+        try:
+            X = np.c_[X, face_bb]
+        except NameError:
+            X = face_bb
+
 
     #
     # get interestingness
     #
     img_names_interesting = read_img_names(os.path.join(dir_training_data, 'interesting'))
     img_names_uninteresting = read_img_names(os.path.join(dir_training_data, 'uninteresting'))
-    target_interesting = np.ones((len(img_names_interesting),1))
-    target_uninteresting = np.zeros((len(img_names_uninteresting), 1))
+    target_interesting = np.ones((len(img_names_interesting),))
+    target_uninteresting = np.zeros((len(img_names_uninteresting),))
 
-    img_names_interesting_test = read_img_names(os.path.join(dir_test_data, 'interesting'))
-    img_names_uninteresting_test = read_img_names(os.path.join(dir_test_data, 'uninteresting'))
-    target_interesting_test = np.ones((len(img_names_interesting_test), 1))
-    target_uninteresting_test = np.zeros((len(img_names_uninteresting_test), 1))
-
-    target = np.concatenate((target_interesting, target_uninteresting), axis=0)
-    target_test = np.concatenate((target_interesting_test, target_uninteresting_test), axis=0)
-
+    y = np.concatenate((target_interesting, target_uninteresting), axis=0)
 
     #
-    # train svm
+    # train and test svm
     #
-    X = face_features
-    y = target
-
     C = 1.0  # SVM regularization parameter
-    svc = svm.SVC(kernel='linear', C=C)
-    svc.fit(X, y)
+    svc = svm.SVC(kernel='linear', C=C) #Accuracy: 0.87 (+/- 0.07)
+    #svc = svm.SVC(kernel='linear', C=C, class_weight={1:10}) #Accuracy: 0.77 (+/- 0.13)
+    scores = cross_val_score(svc, X, y, cv=5)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    print("finished.")
 
-    #
-    # test svm
-    #
-    X_test = face_features_test
-    y_pred = svc.predict(X_test)
-    '''
-    #DEBUG EXAMPLE
-    iris = datasets.load_iris()
-    X = iris.data[:, :2]
-    y = iris.target
-
-    h = .02  # step size in the mesh
-
-    # we create an instance of SVM and fit out data. We do not scale our
-    # data since we want to plot the support vectors
-    C = 1.0  # SVM regularization parameter
-    svc = svm.SVC(kernel='linear', C=C).fit(X, y)
-    rbf_svc = svm.SVC(kernel='rbf', gamma=0.7, C=C).fit(X, y)
-    poly_svc = svm.SVC(kernel='poly', degree=3, C=C).fit(X, y)
-    lin_svc = svm.LinearSVC(C=C).fit(X, y)
-
-    # create a mesh to plot in
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                         np.arange(y_min, y_max, h))
-
-    # title for the plots
-    titles = ['SVC with linear kernel',
-              'LinearSVC (linear kernel)',
-              'SVC with RBF kernel',
-              'SVC with polynomial (degree 3) kernel']
-
-    for i, clf in enumerate((svc, lin_svc, rbf_svc, poly_svc)):
-        # Plot the decision boundary. For that, we will assign a color to each
-        # point in the mesh [x_min, x_max]x[y_min, y_max].
-        plt.subplot(2, 2, i + 1)
-        plt.subplots_adjust(wspace=0.4, hspace=0.4)
-
-        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-
-        # Put the result into a color plot
-        Z = Z.reshape(xx.shape)
-        plt.contourf(xx, yy, Z, cmap=plt.cm.coolwarm, alpha=0.8)
-
-        # Plot also the training points
-        plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.coolwarm)
-        plt.xlabel('Sepal length')
-        plt.ylabel('Sepal width')
-        plt.xlim(xx.min(), xx.max())
-        plt.ylim(yy.min(), yy.max())
-        plt.xticks(())
-        plt.yticks(())
-        plt.title(titles[i])
-
-    plt.show()
-    '''
-
-
-    #
-    # #test svm
-    #
 
 
 
