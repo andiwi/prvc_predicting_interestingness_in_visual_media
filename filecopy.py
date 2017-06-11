@@ -3,9 +3,13 @@ import csv
 import os
 
 def filecopy():
+    '''
+    read groundtruth and copies images into interesting and uninteresting directories
+    :return:
+    '''
     print("Start Copying Interesting Images")
-    csvPath = 'D:\PR aus Visual Computing\Interestingness16data\groundtruth.csv'
-    imgsPath = 'D:\PR aus Visual Computing\Interestingness16data\\allvideos'
+    csvPath = 'D:\PR aus Visual Computing\Interestingness17data\groundtruth.csv'
+    imgsPath = 'D:\PR aus Visual Computing\Interestingness17data\\allvideos'
 
     # read interesting files from csv ground truth
     f = open(csvPath)
@@ -27,8 +31,7 @@ def filecopy():
             else:
                 imgs_uninteresting[row[0]] = [row[1]]
 
-    '''
-    #copy interesting files
+    #copy interesting files in same directory
     for videoDir, imgs in imgs_interesting.iteritems():
         interestingDir = imgsPath + '\\' + videoDir + '\\images\\interesting'
         if not os.path.exists(interestingDir):
@@ -42,7 +45,22 @@ def filecopy():
             shutil.copy2(interestingImgDirFrom, interestingImgDirTo)
     
     print('finished copying interesting files')
-    '''
+
+
+    # copy uninteresting files in same directory
+    for videoDir, imgs in imgs_uninteresting.iteritems():
+        uninterestingDir = imgsPath + '\\' + videoDir + '\\images\\uninteresting'
+        if not os.path.exists(uninterestingDir):
+            os.makedirs(uninterestingDir)
+
+        for img in imgs:
+            uninterestingImgDirFrom = imgsPath + '\\' + videoDir + '\\images\\' + img
+            uninterestingImgDirTo = imgsPath + '\\' + videoDir + '\\images\\uninteresting\\' + img
+
+            print('Copying from: ' + uninterestingImgDirFrom + ' to: ' + uninterestingImgDirTo)
+            shutil.copy2(uninterestingImgDirFrom, uninterestingImgDirTo)
+
+    print('finished copying uninteresting files')
 
 
     #copy interesting files in single directory
@@ -60,26 +78,7 @@ def filecopy():
 
     print('finished copying interesting files in single directory')
 
-
-
-    '''
-    # copy uninteresting files
-    for videoDir, imgs in imgs_uninteresting.iteritems():
-        uninterestingDir = imgsPath + '\\' + videoDir + '\\images\\uninteresting'
-        if not os.path.exists(uninterestingDir):
-            os.makedirs(uninterestingDir)
-    
-        for img in imgs:
-            uninterestingImgDirFrom = imgsPath + '\\' + videoDir + '\\images\\' + img
-            uninterestingImgDirTo = imgsPath + '\\' + videoDir + '\\images\\uninteresting\\' + img
-    
-            print('Copying from: ' + uninterestingImgDirFrom + ' to: ' + uninterestingImgDirTo)
-            shutil.copy2(uninterestingImgDirFrom, uninterestingImgDirTo)
-    
-    print('finished copying uninteresting files')
-    '''
-
-    #copy interesting files in single directory
+    #copy uninteresting files in single directory
     for videoDir, imgs in imgs_uninteresting.iteritems():
         uninterestingDir = imgsPath + '\\images\\uninteresting'
         if not os.path.exists(uninterestingDir):
