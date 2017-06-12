@@ -12,23 +12,26 @@ from crop_imgs import crop_black_borders
 from selectTrainingAndTestData import selectTrainingAndTestData
 from read_imgs import read_img_names
 from feature_calculation import calc_features as feature_calculation, face_count_calculator, img_tilted_calculator
+from load_precalc_features import load_matlab_feature
 
 
 def main():
     do_preprocessing = False
-    calc_features = True
+    calc_features = False
     load_features = True
 
     # which features should be used
     use_face_count = False
     use_rot_distance = False
     use_face_bb = False
-    use_tilted_edges = True
+    use_tilted_edges = False
+    use_hsv_hist = True
 
-    #directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
-    directory_root = 'C:\Users\Andreas\Desktop\edge histogram problem'
+    directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
+    #directory_root = 'C:\Users\Andreas\Desktop\edge histogram problem'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
+
 
     #
     # preprocessing
@@ -68,6 +71,11 @@ def main():
             tilted_edges_uninteresting = feature_calculation(os.path.join(dir_training_data, 'uninteresting'),
                                                              img_tilted_calculator)
 
+        if (use_hsv_hist):
+            hsv_hist_interesting = load_matlab_feature(os.path.join(dir_training_data, 'interesting'), 'ColorHist')
+            hsv_hist_uninteresting = load_matlab_feature(os.path.join(dir_training_data, 'uninteresting'), 'ColorHist')
+
+
         #
         # save unscaled features
         #
@@ -83,6 +91,10 @@ def main():
         if (use_tilted_edges):
             np.savetxt(os.path.join(dir_training_data, 'tilted_edges_interesting.gz'), tilted_edges_interesting)
             np.savetxt(os.path.join(dir_training_data, 'tilted_edges_uninteresting.gz'), tilted_edges_uninteresting)
+
+        if (use_hsv_hist):
+            np.savetxt(os.path.join(dir_training_data, 'hsv_hist_interesting.gz'), hsv_hist_interesting)
+            np.savetxt(os.path.join(dir_training_data, 'hsv_hist_uninteresting.gz'), hsv_hist_uninteresting)
 
         print 'feature calculation finished.'
 
@@ -120,6 +132,10 @@ def main():
             #plt.title('Hist tilted_edges_uninteresting')
             #plt.show()
 
+        if (use_hsv_hist):
+            hsv_hist_interesting = np.loadtxt(os.path.join(dir_training_data, 'hsv_hist_interesting.gz'))
+            hsv_hist_uninteresting = np.loadtxt(os.path.join(dir_training_data, 'hsv_hist_uninteresting.gz'))
+
 
 
     #
@@ -141,6 +157,10 @@ def main():
         tilted_edges_interesting = preprocessing.scale(tilted_edges_interesting)
         tilted_edges_uninteresting = preprocessing.scale(tilted_edges_uninteresting)
 
+    if (use_hsv_hist):
+        hsv_hist_interesting = preprocessing.scale(hsv_hist_interesting)
+        hsv_hist_uninteresting = preprocessing.scale(hsv_hist_uninteresting)
+
     #
     # concatenate features
     #
@@ -159,6 +179,9 @@ def main():
 
     if (use_tilted_edges):
         tilted_edges = np.concatenate((tilted_edges_interesting, tilted_edges_uninteresting), axis=0)
+
+    if (use_hsv_hist):
+        hsv_hists = np.concatenate((hsv_hist_interesting, hsv_hist_uninteresting), axis=0)
 
     #
     # reshape 1D arrays to 2D arrays
@@ -197,6 +220,11 @@ def main():
             X = np.c_[X, tilted_edges]
         except NameError:
             X = tilted_edges
+    if (use_hsv_hist):
+        try:
+            X = np.c_[X, hsv_hists]
+        except NameError:
+            X = hsv_hists
 
     #
     # get interestingness
@@ -217,22 +245,5 @@ def main():
     scores = cross_val_score(svc, X, y, cv=10, scoring='average_precision')
     print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print("finished.")
-
-    '''
-    use_face_count = True
-    use_rot_distance = True
-    use_face_bb = False
-    
-    face_count: Mean Average Precision: 0.08 (+/- 0.04)
-    rot: Mean Average Precision: 0.22 (+/- 0.28)
-    face_bb: Mean Average Precision: 0.21 (+/- 0.61)
-    
-    face_count & rot: Mean Average Precision: 0.16 (+/- 0.17)
-    face_count & face_bb: Mean Average Precision: 0.21 (+/- 0.61)
-    rot & face_bb: Mean Average Precision: 0.21 (+/- 0.61)
-    
-    face_count & rot & face_bb: Mean Average Precision: 0.21 (+/- 0.61)
-    '''
-
 
 if __name__ == '__main__': main()
