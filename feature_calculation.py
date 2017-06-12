@@ -49,5 +49,4 @@ def img_tilted_calculator(img):
     tilted = sum(global_hist[2:4])
     #non_directional_edges = global_hist[4]
 
-
     return tilted / sum(global_hist)

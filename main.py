@@ -5,6 +5,7 @@ import cv2
 import os
 from sklearn.model_selection import cross_val_score
 from sklearn import preprocessing
+import matplotlib.pyplot as plt
 
 from face_detection import face_detection
 from crop_imgs import crop_black_borders
@@ -104,6 +105,22 @@ def main():
         if (use_tilted_edges):
             tilted_edges_interesting = np.loadtxt(os.path.join(dir_training_data, 'tilted_edges_interesting.gz'))
             tilted_edges_uninteresting = np.loadtxt(os.path.join(dir_training_data, 'tilted_edges_uninteresting.gz'))
+
+            tilted_edges_interesting = np.nan_to_num(tilted_edges_interesting)
+            tilted_edges_uninteresting = np.nan_to_num(tilted_edges_uninteresting)
+
+            #DEBUG
+            #plt.figure(1)
+            #plt.subplot(121)
+            #plt.hist(tilted_edges_interesting, bins='auto')
+            #plt.title('Hist tilted_edges_interesting')
+
+            #plt.subplot(122)
+            #plt.hist(tilted_edges_uninteresting, bins='auto')
+            #plt.title('Hist tilted_edges_uninteresting')
+            #plt.show()
+
+
 
     #
     # scale features (because svm is not scale invariant)

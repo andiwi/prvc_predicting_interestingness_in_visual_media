@@ -17,8 +17,8 @@ def calc_edge_histogram(img):
                                   [0, np.sqrt(2), -np.sqrt(2), 0],  # 135 diagonal
                                   [2, -2, -2, 2]  # nao direccional
                                   ]).T
-    DIRECTION_THRES = 0
-
+    DIRECTION_THRES = 11
+    
     QUANTIZER_MATRIX = np.array([[0.010867, 0.012266, 0.004193, 0.004174, 0.006778],
                                  [0.057915, 0.069934, 0.025852, 0.025924, 0.051667],
                                  [0.099526, 0.125879, 0.046860, 0.046232, 0.108650],
@@ -28,16 +28,16 @@ def calc_edge_histogram(img):
                                  [0.358031, 0.411728, 0.161505, 0.151904, 0.356375],
                                  [0.530128, 0.564319, 0.228960, 0.217745, 0.450972]])
 
-
-    img = img
+    DESIRED_NUM_BLOCK = 1100
+    
+    
 
     hists = np.zeros([16, 5])
 
     subimg_height = img.shape[0] / 4
     subimg_width = img.shape[1] / 4
 
-    desired_num_block = 10
-    block_size = int(np.floor(np.sqrt(subimg_height * subimg_width / desired_num_block) / 2) * 2)
+    block_size = int(np.floor(np.sqrt(subimg_height * subimg_width / DESIRED_NUM_BLOCK) / 2) * 2)
     block_width = block_size
     block_height = block_size
     blocks_per_subimg = subimg_height / block_height * subimg_width / block_width
@@ -76,6 +76,8 @@ def calc_edge_histogram(img):
                     subblock4_mean = np.mean(
                         block[block.shape[0] / 2:block.shape[0], block.shape[1] / 2:block.shape[1]])
                     subblocks_means = np.array([subblock1_mean, subblock2_mean, subblock3_mean, subblock4_mean])
+
+                    subblocks_means = np.nan_to_num(subblocks_means) #if blocks are too small, entry is NaN
 
                     m_values = np.abs(subblocks_means.dot(DIRECTION_FILTERS))
                     direction_index = m_values.argmax(axis=0)
