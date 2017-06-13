@@ -17,7 +17,7 @@ from load_precalc_features import load_matlab_feature
 
 def main():
     do_preprocessing = False
-    calc_features = True
+    calc_features = False
     load_features = True
 
     # which features should be used
@@ -30,15 +30,15 @@ def main():
     use_denseSIFT_L0 = False
     use_denseSIFT_L1 = False
     use_denseSIFT_L2 = False
-    # hog features have 3 levels of detail
+    # histogram of oriented gradients features have 3 levels of detail
     use_hog_L0 = False
     use_hog_L1 = False
     use_hog_L2 = False
     # lbp features have 3 levels of detail
     use_lbp_L0 = False
     use_lbp_L1 = False
-    use_lbp_L2 = False
-    use_gist = True
+    use_lbp_L2 = True
+    use_gist = False
 
     directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
     #directory_root = 'C:\Users\Andreas\Desktop\edge histogram problem'
@@ -292,7 +292,7 @@ def main():
         hog_L0_interesting = preprocessing.scale(hog_L0_interesting)
         hog_L0_uninteresting = preprocessing.scale(hog_L0_uninteresting)
     if use_hog_L1:
-        lbp_L1_interesting = preprocessing.scale(hog_L1_interesting)
+        hog_L1_interesting = preprocessing.scale(hog_L1_interesting)
         hog_L1_uninteresting = preprocessing.scale(hog_L1_uninteresting)
     if use_hog_L2:
         hog_L2_interesting = preprocessing.scale(hog_L2_interesting)
