@@ -7,7 +7,7 @@ from face_detection import detect_faces
 from mpeg7_edge_histogram import calc_edge_histogram
 
 
-def calc_features(directory, feature_calculator, args=None):
+def calc_features(directory, feature_calculator, *args):
     img_names = read_img_names(directory)
 
     features = []
@@ -50,3 +50,33 @@ def img_tilted_calculator(img):
     #non_directional_edges = global_hist[4]
 
     return tilted / sum(global_hist)
+
+def edge_hist_dir_calculator(img, only_strongest_dir=False, maintain_values=True):
+    '''
+    calculates edge histogram, sets
+    :param img:
+    :param only_strongest_dir if True -> only the strongest direction of a block has a value. Other directions are set to 0
+    :param maintain_values if False -> values of edge histogram were replaced by a 1 for the max direction
+    :return: edge histogram in a row as a feature vector for the image
+    '''
+    hists, quant_hist, global_hist, quant_global_hist, semiglobal_hist, quant_semiglobal_hist = calc_edge_histogram(img)
+
+    if only_strongest_dir:
+        #for every block find maximum value and set other values to 0
+        def setToZeros(row):
+            max_val = row.max()
+            row = np.where(row != max_val, 0, max_val)
+            return row
+
+        hists = np.apply_along_axis(setToZeros, axis=1, arr=hists)
+
+    if not maintain_values:
+        #set remaining values to 1
+        hists = np.where(hists > 0, 1, 0)
+
+    hists_1D = hists.flatten()
+
+
+
+
+    return hists_1D

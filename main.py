@@ -11,20 +11,22 @@ from face_detection import face_detection
 from crop_imgs import crop_black_borders
 from selectTrainingAndTestData import selectTrainingAndTestData
 from read_imgs import read_img_names
-from feature_calculation import calc_features as feature_calculation, face_count_calculator, img_tilted_calculator
+from feature_calculation import calc_features as feature_calculation, face_count_calculator, img_tilted_calculator, edge_hist_dir_calculator
 from load_precalc_features import load_matlab_feature
+#from obj_recognition import obj_recognition
 
 
 def main():
     do_preprocessing = False
-    calc_features = False
-    load_features = True
+    calc_features = True
+    load_features = False
 
     # which features should be used
     use_face_count = False
     use_rot_distance = False
     use_face_bb = False
-    use_tilted_edges = False
+    use_tilted_edges = True
+    use_edge_hist = True
     use_hsv_hist = False
     # denseSIFT features have 3 levels of detail
     use_denseSIFT_L0 = False
@@ -37,13 +39,15 @@ def main():
     # lbp features have 3 levels of detail
     use_lbp_L0 = False
     use_lbp_L1 = False
-    use_lbp_L2 = True
+    use_lbp_L2 = False
     use_gist = False
 
     directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
     #directory_root = 'C:\Users\Andreas\Desktop\edge histogram problem'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
+
+    #test = obj_recognition(os.path.join(dir_training_data, 'interesting'))
 
 
     #
@@ -76,6 +80,12 @@ def main():
                 os.path.join(dir_training_data, 'interesting'))
             face_count_uninteresting, rot_distance_uninteresting, face_bb_uninteresting = face_detection(
                 os.path.join(dir_training_data, 'uninteresting'))
+
+        if use_edge_hist:
+            edge_hist_interesting = feature_calculation(os.path.join(dir_training_data, 'interesting'),
+                                                        edge_hist_dir_calculator, True, False)
+            edge_hist_uninteresting = feature_calculation(os.path.join(dir_training_data, 'uninteresting'),
+                                                        edge_hist_dir_calculator, True, False)
 
         if (use_tilted_edges):
             # calc camera angle feature (edge orientation histogram)
