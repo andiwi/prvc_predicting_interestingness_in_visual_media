@@ -1,12 +1,14 @@
-import numpy as np
-import cv2
-import os
 import csv
+import os
 
-from np_helper import numpy_fillwithzeros
-from Geometry import Rect
-from read_imgs import read_img_names, read_img
-from rule_of_thirds import distance_to_grid_corner
+import cv2
+import numpy as np
+
+from feature_extraction.rule_of_thirds import distance_to_grid_corner
+from file_handler.read_imgs import read_img_names, read_img
+from helper.Geometry import Rect
+from helper.np_helper import numpy_fillwithzeros
+
 
 def face_to_img_ratios_to_csv(directory, face_frontal_cascade = None, face_profile_cascade = None):
     '''

@@ -1,6 +1,9 @@
-import cv2
 import os
-from read_imgs import read_img_names, read_img
+
+import cv2
+
+from file_handler.read_imgs import read_img_names, read_img
+
 
 def draw_phi_grid(directory):
     '''

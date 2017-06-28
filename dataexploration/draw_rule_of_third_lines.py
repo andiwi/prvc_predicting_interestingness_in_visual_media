@@ -1,6 +1,9 @@
-import cv2
 import os
-from read_imgs import read_img, read_img_names
+
+import cv2
+
+from file_handler.read_imgs import read_img, read_img_names
+
 
 def draw_rule_of_thirds_lines(directory):
     '''

@@ -1,7 +1,9 @@
-from shutil import copyfile
 import os
 import random
-from read_imgs import read_img_names, read_img
+from shutil import copyfile
+
+from file_handler.read_imgs import read_img_names
+
 
 def selectTrainingAndTestData(dir_interesting_imgs, dir_uninteresting_imgs, output_dir_training, output_dir_test, interesting_training_samples=50, uninteresting_training_samples=500, interesting_test_samples=50, uninteresting_test_samples=500):
     """

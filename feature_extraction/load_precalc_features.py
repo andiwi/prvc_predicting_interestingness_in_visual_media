@@ -3,8 +3,8 @@ import os
 import numpy as np
 import scipy.io as sio
 
-from file_search import get_abs_path_of_file
-from read_imgs import read_img_names
+from file_handler.file_search import get_abs_path_of_file
+from file_handler.read_imgs import read_img_names
 
 
 def load_matlab_feature(path_to_imgs, feature_name):

@@ -1,9 +1,10 @@
-from read_imgs import read_img_names, read_img
 import os
-import numpy as np
+
 import cv2
-import math
+import numpy as np
+
 from face_detection import detect_faces
+from file_handler.read_imgs import read_img_names, read_img
 from mpeg7_edge_histogram import calc_edge_histogram
 
 

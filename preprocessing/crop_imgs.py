@@ -1,9 +1,10 @@
 import os
+
 import cv2
-import math
 import numpy as np
-from matplotlib import pyplot as plt
-from read_imgs import read_img_names, read_img
+
+from file_handler.read_imgs import read_img_names, read_img
+
 
 def crop_black_borders(directory):
     """

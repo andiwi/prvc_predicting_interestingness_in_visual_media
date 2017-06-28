@@ -1,18 +1,21 @@
-from sklearn import svm
-import numpy as np
-import np_helper
-import cv2
 import os
-from sklearn.model_selection import cross_val_score
-from sklearn import preprocessing
-import matplotlib.pyplot as plt
 
-from face_detection import face_detection
-from crop_imgs import crop_black_borders
-from selectTrainingAndTestData import selectTrainingAndTestData
-from read_imgs import read_img_names
-from feature_calculation import calc_features as feature_calculation, face_count_calculator, img_tilted_calculator, edge_hist_dir_calculator
-from load_precalc_features import load_matlab_feature
+import cv2
+import numpy as np
+from sklearn import preprocessing
+from sklearn import svm
+from sklearn.model_selection import cross_val_score
+
+from feature_extraction.face_detection import face_detection
+from feature_extraction.feature_calculation import calc_features as feature_calculation, img_tilted_calculator, \
+    edge_hist_dir_calculator
+from feature_extraction.load_precalc_features import load_matlab_feature
+from file_handler.read_imgs import read_img_names
+from helper import np_helper
+from preprocessing.crop_imgs import crop_black_borders
+from preprocessing.selectTrainingAndTestData import selectTrainingAndTestData
+
+
 #from obj_recognition import obj_recognition
 
 

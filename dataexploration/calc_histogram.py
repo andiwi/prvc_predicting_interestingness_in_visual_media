@@ -1,8 +1,10 @@
 import os
+
 import cv2
-from read_imgs import read_img_names, read_img
 from matplotlib import pyplot as plt
-import numpy as np
+
+from file_handler.read_imgs import read_img_names, read_img
+
 
 def calc_histograms(directory):
     '''
