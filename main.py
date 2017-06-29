@@ -18,7 +18,7 @@ from file_handler import feature_files
 def main():
     # the features which should be used.
     feature_names = [
-        Features.Face_bb_full_img
+        Features.CNN_prob
     ]
 
     do_preprocessing = False

@@ -138,6 +138,16 @@ def calc_features(dir, feature_names):
             uninteresting = load_matlab_feature(dir_unint, Features.Gist)
             features[Features.Gist] = [interesting, uninteresting]
 
+        elif name == Features.CNN_fc7:
+            interesting = load_matlab_feature(dir_int, Features.CNN_fc7)
+            uninteresting = load_matlab_feature(dir_unint, Features.CNN_fc7)
+            features[Features.CNN_fc7] = [interesting, uninteresting]
+
+        elif name == Features.CNN_prob:
+            interesting = load_matlab_feature(dir_int, Features.CNN_prob)
+            uninteresting = load_matlab_feature(dir_unint, Features.CNN_prob)
+            features[Features.CNN_prob] = [interesting, uninteresting]
+
         else:
             raise NotImplementedError
 

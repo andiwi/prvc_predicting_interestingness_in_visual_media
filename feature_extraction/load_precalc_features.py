@@ -23,28 +23,32 @@ def load_matlab_feature(path_to_imgs, feature_name):
     'D:\\PR aus Visual Computing\\Interestingness17data\\features\\'
     for img_name in img_names:
 
-        if (feature_name == 'denseSIFT_L0'):
+        if feature_name == Features.DenseSIFT_L0:
             feature = _denseSIFT_fe(feature_root_dir, img_name, level=0)
-        elif (feature_name == 'denseSIFT_L1'):
+        elif feature_name == Features.DenseSIFT_L1:
             feature = _denseSIFT_fe(feature_root_dir, img_name, level=1)
-        elif (feature_name == 'denseSIFT_L2'):
+        elif feature_name == Features.DenseSIFT_L2:
             feature = _denseSIFT_fe(feature_root_dir, img_name, level=2)
-        elif (feature_name == 'HOG_L0'):
+        elif feature_name == Features.Hog_L0:
             feature = _hog_fe(feature_root_dir, img_name, level=0)
-        elif (feature_name == 'HOG_L1'):
+        elif feature_name == Features.Hog_L1:
             feature = _hog_fe(feature_root_dir, img_name, level=1)
-        elif (feature_name == 'HOG_L2'):
+        elif feature_name == Features.Hog_L2:
             feature = _hog_fe(feature_root_dir, img_name, level=2)
-        elif (feature_name == 'LBP_L0'):
+        elif feature_name == Features.Lbp_L0:
             feature = _lbp_fe(feature_root_dir, img_name, level=0)
-        elif (feature_name == 'LBP_L1'):
+        elif feature_name == Features.Lbp_L1:
             feature = _lbp_fe(feature_root_dir, img_name, level=1)
-        elif (feature_name == 'LBP_L2'):
+        elif feature_name == Features.Lbp_L2:
             feature = _lbp_fe(feature_root_dir, img_name, level=2)
-        elif (feature_name == 'GIST'):
+        elif feature_name == Features.Gist:
             feature = _gist_fe(feature_root_dir, img_name)
-        elif (feature_name == Features.Hsv_hist):
+        elif feature_name == Features.Hsv_hist:
             feature = _colorHist_fe(feature_root_dir, img_name)
+        elif feature_name == Features.CNN_fc7:
+            feature = _cnn_fc7(feature_root_dir, img_name)
+        elif feature_name == Features.CNN_prob:
+            feature = _cnn_prob(feature_root_dir, img_name)
         else:
             raise NotImplementedError
             # TODO do we need fc7 & prob layer of AlexNet and MFCC features?
@@ -140,3 +144,24 @@ def _gist_fe(feature_root_path, img_name):
     else:
         img_features = sio.loadmat(matfile_path)
         return img_features['descrs']
+
+def _cnn_fc7(feature_root_path, img_name):
+    path = os.path.join(feature_root_path, 'Features_From_FudanUniversity', 'Image_Subtask', 'CNN', 'fc7')
+
+    matfile_path = get_abs_path_of_file(path, img_name + '.mat')
+    if matfile_path is None:
+        return np.zeros(4096)
+    else:
+        img_features = sio.loadmat(matfile_path)
+        return img_features['AlexNet_fc7'][0]
+
+def _cnn_prob(feature_root_path, img_name):
+    path = os.path.join(feature_root_path, 'Features_From_FudanUniversity', 'Image_Subtask', 'CNN', 'prob')
+
+    matfile_path = get_abs_path_of_file(path, img_name + '.mat')
+    if matfile_path is None:
+        return np.zeros(1000)
+    else:
+        img_features = sio.loadmat(matfile_path)
+        return img_features['AlexNet_prob'][0]
+

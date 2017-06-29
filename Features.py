@@ -20,3 +20,5 @@ class Features(object):
     Lbp_L1 = 'lbp_L1'
     Lbp_L2 = 'lbp_L2'
     Gist = 'gist'
+    CNN_fc7 = 'cnn_fc7'
+    CNN_prob = 'cnn_prob'
