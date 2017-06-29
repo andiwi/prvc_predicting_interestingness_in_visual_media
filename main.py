@@ -18,18 +18,15 @@ from file_handler import feature_files
 def main():
     # the features which should be used.
     feature_names = [
-        Features.Face_count
-        # Features.Edge_hist,
-        # Features.Tilted_edges,
-        # Features.Hsv_hist
+        Features.Face_bb_full_img
     ]
 
     do_preprocessing = False
-    calc_features = False
+    calc_features = True
     load_features = True
 
-    directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
-    # directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
+    #directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
+    directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
 
