@@ -4,7 +4,8 @@ from sklearn import preprocessing
 from sklearn import svm
 from sklearn.model_selection import cross_val_score
 
-from feature_extraction.feature_calculation import calc_features_new
+import preprocessing
+from feature_extraction import feature_calculation
 from feature_extraction.feature_processing import scale_features, concat_features, reshape_arrays_1D_to_2D, \
     gen_final_feature_matrix, get_target_vec
 from Features import Features
@@ -39,13 +40,13 @@ def main():
     # preprocessing
     #
     if (do_preprocessing):
-        preprocessing(directory_root)
+        preprocessing.preprocessing(directory_root)
         print 'preprocessing finished.'
     #
     # calculate features
     #
     if (calc_features):
-        features = calc_features_new(dir_training_data, feature_names)
+        features = feature_calculation.calc_features(dir_training_data, feature_names)
 
         # save unscaled features
         feature_files.save_features(dir_training_data, features)

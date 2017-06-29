@@ -10,7 +10,7 @@ from feature_extraction.load_precalc_features import load_matlab_feature
 from face_detection import  face_detection
 from Features import Features
 
-def calc_features_new(dir, feature_names):
+def calc_features(dir, feature_names):
     '''
     calculates all features given by feature_names
     :param (String) dir: directory containing subdirectories 'interesting' and 'uninteresting' which contain images
@@ -35,13 +35,13 @@ def calc_features_new(dir, feature_names):
             features[Features.Face_bb] = [face_bb_interesting, face_bb_uninteresting]
 
         elif name == Features.Tilted_edges:
-            interesting = calc_features(dir_int, img_tilted_calculator)
-            uninteresting = calc_features(dir_unint, img_tilted_calculator)
+            interesting = _calc_features(dir_int, img_tilted_calculator)
+            uninteresting = _calc_features(dir_unint, img_tilted_calculator)
             features[Features.Tilted_edges] = [interesting, uninteresting]
 
         elif name == Features.Edge_hist:
-            interesting = calc_features(dir_int, edge_hist_dir_calculator, True, False)
-            uninteresting = calc_features(dir_unint, edge_hist_dir_calculator, True, False)
+            interesting = _calc_features(dir_int, edge_hist_dir_calculator, True, False)
+            uninteresting = _calc_features(dir_unint, edge_hist_dir_calculator, True, False)
             features[Features.Edge_hist] = [interesting, uninteresting]
 
         #precalculated features
@@ -105,7 +105,7 @@ def calc_features_new(dir, feature_names):
 
     return features
 
-def calc_features(directory, feature_calculator, *args):
+def _calc_features(directory, feature_calculator, *args):
     img_names = read_img_names(directory)
 
     features = []
