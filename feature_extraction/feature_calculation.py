@@ -6,7 +6,104 @@ import numpy as np
 from face_detection import detect_faces
 from file_handler.read_imgs import read_img_names, read_img
 from mpeg7_edge_histogram import calc_edge_histogram
+from feature_extraction.load_precalc_features import load_matlab_feature
+from face_detection import  face_detection
+from Features import Features
 
+def calc_features_new(dir, feature_names):
+    '''
+    calculates all features given by feature_names
+    :param (String) dir: directory containing subdirectories 'interesting' and 'uninteresting' which contain images
+    :param (list) feature_names: list of feature names which should be calculated
+    :return: (dict) {feature_name: [features_interesting, features_uninteresting]}
+    '''
+    features = {}
+    dir_int = os.path.join(dir, 'interesting')
+    dir_unint = os.path.join(dir, 'uninteresting')
+
+    for name in feature_names:
+        if name == Features.Face_count or name == Features.Rot_distance or name == Features.Face_bb:
+            directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
+            face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
+            face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
+
+            face_count_interesting, rot_distance_interesting, face_bb_interesting = face_detection(dir_int)
+            face_count_uninteresting, rot_distance_uninteresting, face_bb_uninteresting = face_detection(dir_unint)
+
+            features[Features.Face_count] = [face_count_interesting, face_count_uninteresting]
+            features[Features.Rot_distance] = [rot_distance_interesting, rot_distance_uninteresting]
+            features[Features.Face_bb] = [face_bb_interesting, face_bb_uninteresting]
+
+        elif name == Features.Tilted_edges:
+            interesting = calc_features(dir_int, img_tilted_calculator)
+            uninteresting = calc_features(dir_unint, img_tilted_calculator)
+            features[Features.Tilted_edges] = [interesting, uninteresting]
+
+        elif name == Features.Edge_hist:
+            interesting = calc_features(dir_int, edge_hist_dir_calculator, True, False)
+            uninteresting = calc_features(dir_unint, edge_hist_dir_calculator, True, False)
+            features[Features.Edge_hist] = [interesting, uninteresting]
+
+        #precalculated features
+        elif name == Features.Hsv_hist:
+            interesting = load_matlab_feature(dir_int, Features.Hsv_hist)
+            uninteresting = load_matlab_feature(dir_unint, Features.Hsv_hist)
+            features[Features.Hsv_hist] = [interesting, uninteresting]
+
+        elif name == Features.DenseSIFT_L0:
+            interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L0)
+            uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L0)
+            features[Features.DenseSIFT_L0] = [interesting, uninteresting]
+
+        elif name == Features.DenseSIFT_L1:
+            interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L1)
+            uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L1)
+            features[Features.DenseSIFT_L1] = [interesting, uninteresting]
+
+        elif name == Features.DenseSIFT_L2:
+            interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L2)
+            uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L2)
+            features[Features.DenseSIFT_L2] = [interesting, uninteresting]
+
+        elif name == Features.Hog_L0:
+            interesting = load_matlab_feature(dir_int, Features.Hog_L0)
+            uninteresting = load_matlab_feature(dir_unint, Features.Hog_L0)
+            features[Features.Hog_L0] = [interesting, uninteresting]
+
+        elif name == Features.Hog_L1:
+            interesting = load_matlab_feature(dir_int, Features.Hog_L1)
+            uninteresting = load_matlab_feature(dir_unint, Features.Hog_L1)
+            features[Features.Hog_L1] = [interesting, uninteresting]
+
+        elif name == Features.Hog_L2:
+            interesting = load_matlab_feature(dir_int, Features.Hog_L2)
+            uninteresting = load_matlab_feature(dir_unint, Features.Hog_L2)
+            features[Features.Hog_L2] = [interesting, uninteresting]
+
+        elif name == Features.Lbp_L0:
+            interesting = load_matlab_feature(dir_int, Features.Lbp_L0)
+            uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L0)
+            features[Features.Lbp_L0] = [interesting, uninteresting]
+
+        elif name == Features.Lbp_L1:
+            interesting = load_matlab_feature(dir_int, Features.Lbp_L1)
+            uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L1)
+            features[Features.Lbp_L1] = [interesting, uninteresting]
+
+        elif name == Features.Lbp_L2:
+            interesting = load_matlab_feature(dir_int, Features.Lbp_L2)
+            uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L2)
+            features[Features.Lbp_L2] = [interesting, uninteresting]
+
+        elif name == Features.Gist:
+            interesting = load_matlab_feature(dir_int, Features.Gist)
+            uninteresting = load_matlab_feature(dir_unint, Features.Gist)
+            features[Features.Gist] = [interesting, uninteresting]
+
+        else:
+            raise NotImplementedError
+
+    return features
 
 def calc_features(directory, feature_calculator, *args):
     img_names = read_img_names(directory)

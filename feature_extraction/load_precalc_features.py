@@ -5,6 +5,7 @@ import scipy.io as sio
 
 from file_handler.file_search import get_abs_path_of_file
 from file_handler.read_imgs import read_img_names
+from Features import Features
 
 
 def load_matlab_feature(path_to_imgs, feature_name):
@@ -42,7 +43,7 @@ def load_matlab_feature(path_to_imgs, feature_name):
             feature = _lbp_fe(feature_root_dir, img_name, level=2)
         elif (feature_name == 'GIST'):
             feature = _gist_fe(feature_root_dir, img_name)
-        elif (feature_name == 'ColorHist'):
+        elif (feature_name == Features.Hsv_hist):
             feature = _colorHist_fe(feature_root_dir, img_name)
         else:
             raise NotImplementedError
