@@ -13,6 +13,7 @@ class Rect(object):
         self.h = h
 
     def area(self):
+        # type: () -> object
         '''
         calculates area of rectangle
         :return: area

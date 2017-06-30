@@ -9,6 +9,7 @@ class Features(object):
     Edge_hist_v0 = 'edge_hist_v0'
     Edge_hist_v1 = 'edge_hist_v1'
     Edge_hist_v2 = 'edge_hist_v2'
+    Symmetry = 'symmetry'
     Hsv_hist = 'hsv_hist'
     DenseSIFT_L0 = 'denseSIFT_L0'
     DenseSIFT_L1 = 'denseSIFT_L1'

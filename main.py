@@ -5,32 +5,35 @@ from sklearn import svm
 from sklearn.model_selection import cross_val_score
 
 import preprocessing
-from feature_extraction import feature_calculation
+from feature_extraction import feature_calculation, obj_recognition
 from feature_extraction.feature_processing import scale_features, concat_features, reshape_arrays_1D_to_2D, \
     gen_final_feature_matrix, get_target_vec
 from Features import Features
 from file_handler import feature_files
 
 
+
+from chainercv import utils
 # from obj_recognition import obj_recognition
 
 
 def main():
     # the features which should be used.
     feature_names = [
-        Features.CNN_prob
+        Features.Symmetry
     ]
 
     do_preprocessing = False
     calc_features = True
-    load_features = True
+    load_features = False
 
     #directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
     directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
 
-    # test = obj_recognition(os.path.join(dir_training_data, 'interesting'))
+    #img = utils.read_image(os.path.join(dir_training_data, 'interesting', '345_318-373.jpg'))
+    #test = obj_recognition.obj_recognition(img)
 
 
     #
