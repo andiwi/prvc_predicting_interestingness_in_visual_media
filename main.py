@@ -12,47 +12,35 @@ from Features import Features
 from file_handler import feature_files
 
 
-
-from chainercv import utils
-# from obj_recognition import obj_recognition
-
-
 def main():
     # the features which should be used.
     feature_names = [
-        Features.Symmetry
+        Features.Face_count
     ]
 
     do_preprocessing = False
-    calc_features = True
-    load_features = False
+    calc_features = False
 
-    #directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
-    directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
+    directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
+    # directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
 
-    #img = utils.read_image(os.path.join(dir_training_data, 'interesting', '345_318-373.jpg'))
-    #test = obj_recognition.obj_recognition(img)
 
-
-    #
     # preprocessing
-    #
     if (do_preprocessing):
         preprocessing.preprocessing(directory_root)
         print 'preprocessing finished.'
-    #
+
     # calculate features
-    #
-    if (calc_features):
+    if calc_features:
         features = feature_calculation.calc_features(dir_training_data, feature_names)
 
         # save unscaled features
         feature_files.save_features(dir_training_data, features)
         print 'feature calculation finished.'
 
-    if (load_features):
+    else:
         # load features from files
         features = feature_files.load_features(dir_training_data, feature_names)
 
