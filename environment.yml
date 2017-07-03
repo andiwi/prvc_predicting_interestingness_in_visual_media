@@ -1,0 +1,10 @@
+name: prvc
+
+dependencies:
+  - python=2
+  - numpy
+  - matplotlib
+  - opencv=2.4.11
+  - pip
+  - pip:
+    - chainercv
