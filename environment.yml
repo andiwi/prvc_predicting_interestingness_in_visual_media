@@ -1,5 +1,6 @@
 name: prvc
-
+channels:
+  - menpo
 dependencies:
   - python=2
   - numpy
