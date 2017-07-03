@@ -97,8 +97,8 @@ def calc_features(dir, feature_names):
         elif name == Features.Symmetry:
             model = FasterRCNNVGG16(pretrained_model='voc07')
 
-            interesting = _calc_features(dir_int, _symmetry_calculator, model)
-            uninteresting = _calc_features(dir_int, _symmetry_calculator, model)
+            #interesting = _calc_features(dir_int, _symmetry_calculator, model)
+            uninteresting = _calc_features(dir_unint, _symmetry_calculator, model)
             features[Features.Symmetry] = [interesting, uninteresting]
 
 
@@ -177,6 +177,9 @@ def calc_features(dir, feature_names):
 def _calc_features(directory, feature_calculator, *args):
     img_names = read_img_names(directory)
 
+    #DEBUG
+    counter = 0
+    #DEBUG END
     features = []
     for img_name in img_names:
         img = read_img(os.path.join(directory, img_name))
@@ -187,7 +190,10 @@ def _calc_features(directory, feature_calculator, *args):
             feature = feature_calculator(img, *args)
 
         features.append(feature)
-
+        #DEBUG
+        print 'image: ' + str(counter)
+        counter = counter+1
+        #DEBUG END
     return np.asarray(features)
 
 
@@ -444,6 +450,9 @@ def _symmetry_calculator(img, model):
     # plot.show()
     # DEBUG END
 
+    if(bboxes_l.size == 0 or bboxes_r.size == 0):
+        #no objects found in image
+        return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     # store bbox labels and score in dict
     descr_l = {}
