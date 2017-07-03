@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import preprocessing
-from feature_extraction import feature_calculation, obj_recognition
+from feature_extraction import feature_calculation#, obj_recognition
 from feature_extraction.feature_processing import scale_features, concat_features, reshape_arrays_1D_to_2D, \
     gen_final_feature_matrix, get_target_vec
 from Features import Features
@@ -27,6 +27,7 @@ def main():
 
     directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
     #directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
+    directory_root = '/home/andreas/Desktop/testimgs'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
 
