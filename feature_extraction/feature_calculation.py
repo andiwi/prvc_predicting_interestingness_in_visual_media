@@ -97,7 +97,7 @@ def calc_features(dir, feature_names):
         elif name == Features.Symmetry:
             model = FasterRCNNVGG16(pretrained_model='voc07')
 
-            #interesting = _calc_features(dir_int, _symmetry_calculator, model)
+            interesting = _calc_features(dir_int, _symmetry_calculator, model)
             uninteresting = _calc_features(dir_unint, _symmetry_calculator, model)
             features[Features.Symmetry] = [interesting, uninteresting]
 
