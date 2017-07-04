@@ -1,5 +1,7 @@
 import os
 
+import random
+
 import sklearn
 from sklearn import svm
 from sklearn.model_selection import cross_val_score, cross_val_predict
@@ -7,30 +9,31 @@ from sklearn.model_selection import cross_val_score, cross_val_predict
 import numpy as np
 import matplotlib.pyplot as plt
 
+import file_handler
 import preprocessing
+import postprocessing
 from feature_extraction import feature_calculation#, obj_recognition
 from feature_extraction.feature_processing import scale_features, concat_features, reshape_arrays_1D_to_2D, \
     gen_final_feature_matrix, get_target_vec
 from Features import Features
 from file_handler import feature_files
+from file_handler.read_imgs import read_img_names
 from helper import box_filter
 
 
 def main():
     # the features which should be used.
     feature_names = [
-        Features.Face_count,
-        Features.Edge_hist_v0,
-        Features.Face_count,
-        Features.Rot_distance,
-        Features.Face_bb,
-        Features.Face_bb_full_img,
-        Features.Face_bb_quarter_imgs,
-        Features.Face_bb_eighth_imgs,
-        Features.Tilted_edges,
-        Features.Edge_hist_v0,
-        Features.Edge_hist_v1,
-        Features.Edge_hist_v2,
+        #Features.Face_count,
+        #Features.Rot_distance,
+        #Features.Face_bb,
+        #Features.Face_bb_full_img,
+        #Features.Face_bb_quarter_imgs,
+        #Features.Face_bb_eighth_imgs,
+        #Features.Tilted_edges,
+        #Features.Edge_hist_v0,
+        #Features.Edge_hist_v1,
+        #Features.Edge_hist_v2,
         Features.Symmetry,
         #Features.Hsv_hist,
         #Features.DenseSIFT_L0,
@@ -48,12 +51,12 @@ def main():
     ]
 
     do_preprocessing = False
-    calc_features = True
+    calc_features = False
 
     directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
     #directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
     #directory_root = '/home/andreas/Desktop/testimgs'
-    directory_root = '/home/andreas/Desktop/allimgs'
+    #directory_root = '/home/andreas/Desktop/allimgs'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
 
@@ -96,16 +99,44 @@ def main():
     # train and test svm
     #
     C = 1.0  # SVM regularization parameter
-    svc = svm.SVC(kernel='rbf', C=C, probability=True)  # Accuracy: 0.87 (+/- 0.07)
-    # svc = svm.SVC(kernel='linear', C=C, class_weight={1:10}) #Accuracy: 0.77 (+/- 0.13)
+    svc = svm.SVC(kernel='rbf', C=C, probability=True)
+
+    #TODO for final submission
+    ##choose random 10 imgs as test set
+    #testIdxs = random.sample(range(0, len(y)), k=10)
+    #img_names = read_img_names(dir_training_data)
+#
+    #img_names_interesting = read_img_names(os.path.join(dir_training_data, 'interesting'))
+    #img_names_uninteresting = read_img_names(os.path.join(dir_training_data, 'uninteresting'))
+    #img_names = np.concatenate((img_names_interesting, img_names_uninteresting), axis=0)
+    #img_names_test = img_names[testIdxs]
+#
+    #X_train = np.delete(X, testIdxs, axis=0)
+    #y_train = np.delete(y, testIdxs, axis=0)
+    #X_test = X[testIdxs]
+    #y_test = y[testIdxs]
+    #
+    ##train svm
+    #svc.fit(X_train, y_train)
+    ##classify test set
+    #y_proba = svc.predict_proba(X_test)
+#
+    #submission_format = postprocessing.gen_submission_format(img_names_test, y_proba)
+    #file_handler.save_submission(submission_format)
+
+
+
+
+
+
     scores = cross_val_score(svc, X, y, cv=10, scoring='average_precision')
-    preditctions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
+    predictions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
 
     # classic version
-    avg_precision_score_v1 = sklearn.metrics.average_precision_score(y, preditctions[:, 1])
+    avg_precision_score_v1 = sklearn.metrics.average_precision_score(y, predictions[:, 1])
 
-    probability = preditctions[:, 1]
-    x_vals = np.asarray(range(0,len(probability)))
+    probability = predictions[:, 1]
+    x_vals = np.asarray(range(0, len(probability)))
 
     #sort probability
     probability = np.sort(probability)
@@ -124,11 +155,13 @@ def main():
             limitIdx = i
             break
 
+    if limitIdx is None:
+        limitIdx = i
+
     #DEBUG
-    #limitPoint
     plt.plot(x_vals, probability, 'o')
     plt.plot(x_vals, proba_smooth, 'r-', lw=2)
-    plt.plot(x_vals[i], proba_smooth[i], 'go')
+    plt.plot(x_vals[limitIdx], proba_smooth[limitIdx], 'go')
     plt.show()
     #DEBUG END
 
