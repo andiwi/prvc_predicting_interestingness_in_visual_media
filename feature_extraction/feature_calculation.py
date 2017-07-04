@@ -15,6 +15,7 @@ from chainercv import utils
 import matplotlib.pyplot as plot
 from Features import Features
 from helper.Geometry import Rect
+from file_handler import feature_files
 
 
 def calc_features(dir, feature_names):
@@ -30,6 +31,7 @@ def calc_features(dir, feature_names):
 
     for name in feature_names:
         if name == Features.Face_count or name == Features.Rot_distance or name == Features.Face_bb:
+            print Features.Face_count
             directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
             face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
             face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
@@ -41,7 +43,10 @@ def calc_features(dir, feature_names):
             features[Features.Rot_distance] = [rot_distance_interesting, rot_distance_uninteresting]
             features[Features.Face_bb] = [face_bb_interesting, face_bb_uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Face_bb_full_img:
+            print Features.Face_bb_full_img
             directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
             face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
             face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
@@ -52,7 +57,10 @@ def calc_features(dir, feature_names):
                                            face_profile_cascade)
             features[Features.Face_bb_full_img] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Face_bb_quarter_imgs:
+            Features.Face_bb_quarter_imgs
             directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
             face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
             face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
@@ -63,7 +71,10 @@ def calc_features(dir, feature_names):
                                            face_profile_cascade)
             features[Features.Face_bb_quarter_imgs] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Face_bb_eighth_imgs:
+            Features.Face_bb_eighth_imgs
             directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
             face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
             face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
@@ -74,99 +85,155 @@ def calc_features(dir, feature_names):
                                            face_profile_cascade)
             features[Features.Face_bb_eighth_imgs] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Tilted_edges:
+            print Features.Tilted_edges
             interesting = _calc_features(dir_int, img_tilted_calculator)
             uninteresting = _calc_features(dir_unint, img_tilted_calculator)
             features[Features.Tilted_edges] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Edge_hist_v0:
+            print Features.Edge_hist_v0
             interesting = _calc_features(dir_int, edge_hist_dir_calculator, False, False)
             uninteresting = _calc_features(dir_unint, edge_hist_dir_calculator, False, False)
             features[Features.Edge_hist_v0] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Edge_hist_v1:
+            print Features.Edge_hist_v1
             interesting = _calc_features(dir_int, edge_hist_dir_calculator, True, True)
             uninteresting = _calc_features(dir_unint, edge_hist_dir_calculator, True, True)
             features[Features.Edge_hist_v1] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Edge_hist_v2:
+            print Features.Edge_hist_v2
             interesting = _calc_features(dir_int, edge_hist_dir_calculator, True, False)
             uninteresting = _calc_features(dir_unint, edge_hist_dir_calculator, True, False)
             features[Features.Edge_hist_v2] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Symmetry:
+            print Features.Symmetry
             model = FasterRCNNVGG16(pretrained_model='voc07')
 
             #interesting = _calc_features(dir_int, _symmetry_calculator, model)
             uninteresting = _calc_features(dir_unint, _symmetry_calculator, model)
             features[Features.Symmetry] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
 
         # precalculated features
         elif name == Features.Hsv_hist:
+            print Features.Hsv_hist
             interesting = load_matlab_feature(dir_int, Features.Hsv_hist)
             uninteresting = load_matlab_feature(dir_unint, Features.Hsv_hist)
             features[Features.Hsv_hist] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.DenseSIFT_L0:
+            print Features.DenseSIFT_L0
             interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L0)
             uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L0)
             features[Features.DenseSIFT_L0] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.DenseSIFT_L1:
+            print Features.DenseSIFT_L1
             interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L1)
             uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L1)
             features[Features.DenseSIFT_L1] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.DenseSIFT_L2:
+            print Features.DenseSIFT_L2
             interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L2)
             uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L2)
             features[Features.DenseSIFT_L2] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Hog_L0:
+            print Features.Hog_L0
             interesting = load_matlab_feature(dir_int, Features.Hog_L0)
             uninteresting = load_matlab_feature(dir_unint, Features.Hog_L0)
             features[Features.Hog_L0] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Hog_L1:
+            print Features.Hog_L1
             interesting = load_matlab_feature(dir_int, Features.Hog_L1)
             uninteresting = load_matlab_feature(dir_unint, Features.Hog_L1)
             features[Features.Hog_L1] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Hog_L2:
+            print Features.Hog_L2
             interesting = load_matlab_feature(dir_int, Features.Hog_L2)
             uninteresting = load_matlab_feature(dir_unint, Features.Hog_L2)
             features[Features.Hog_L2] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Lbp_L0:
+            print Features.Lbp_L0
             interesting = load_matlab_feature(dir_int, Features.Lbp_L0)
             uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L0)
             features[Features.Lbp_L0] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Lbp_L1:
+            print Features.Lbp_L1
             interesting = load_matlab_feature(dir_int, Features.Lbp_L1)
             uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L1)
             features[Features.Lbp_L1] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Lbp_L2:
+            print Features.Lbp_L2
             interesting = load_matlab_feature(dir_int, Features.Lbp_L2)
             uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L2)
             features[Features.Lbp_L2] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.Gist:
+            print Features.Gist
             interesting = load_matlab_feature(dir_int, Features.Gist)
             uninteresting = load_matlab_feature(dir_unint, Features.Gist)
             features[Features.Gist] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.CNN_fc7:
+            print Features.CNN_fc7
             interesting = load_matlab_feature(dir_int, Features.CNN_fc7)
             uninteresting = load_matlab_feature(dir_unint, Features.CNN_fc7)
             features[Features.CNN_fc7] = [interesting, uninteresting]
 
+            feature_files.save_features(dir, features)
+
         elif name == Features.CNN_prob:
+            print Features.CNN_prob
             interesting = load_matlab_feature(dir_int, Features.CNN_prob)
             uninteresting = load_matlab_feature(dir_unint, Features.CNN_prob)
             features[Features.CNN_prob] = [interesting, uninteresting]
+
+            feature_files.save_features(dir, features)
 
         else:
             raise NotImplementedError
