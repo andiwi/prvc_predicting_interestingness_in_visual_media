@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import preprocessing
-from feature_extraction import feature_calculation, obj_recognition
+from feature_extraction import feature_calculation#, obj_recognition
 from feature_extraction.feature_processing import scale_features, concat_features, reshape_arrays_1D_to_2D, \
     gen_final_feature_matrix, get_target_vec
 from Features import Features
@@ -19,7 +19,32 @@ from helper import box_filter
 def main():
     # the features which should be used.
     feature_names = [
-        Features.Symmetry
+        Features.Face_count,
+        Features.Edge_hist_v0,
+        Features.Face_count,
+        Features.Rot_distance,
+        Features.Face_bb,
+        Features.Face_bb_full_img,
+        Features.Face_bb_quarter_imgs,
+        Features.Face_bb_eighth_imgs,
+        Features.Tilted_edges,
+        Features.Edge_hist_v0,
+        Features.Edge_hist_v1,
+        Features.Edge_hist_v2,
+        Features.Symmetry,
+        #Features.Hsv_hist,
+        #Features.DenseSIFT_L0,
+        #Features.DenseSIFT_L1,
+        #Features.DenseSIFT_L2,
+        #Features.Hog_L0,
+        #Features.Hog_L1,
+        #Features.Hog_L2,
+        #Features.Lbp_L0,
+        #Features.Lbp_L1,
+        #Features.Lbp_L2,
+        #Features.Gist,
+        #Features.CNN_fc7,
+        #Features.CNN_prob
     ]
 
     do_preprocessing = False
@@ -27,6 +52,8 @@ def main():
 
     directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
     #directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
+    #directory_root = '/home/andreas/Desktop/testimgs'
+    directory_root = '/home/andreas/Desktop/allimgs'
     dir_training_data = os.path.join(directory_root, 'trainingData')
     dir_test_data = os.path.join(directory_root, 'testData')
 
@@ -69,13 +96,15 @@ def main():
     # train and test svm
     #
     C = 1.0  # SVM regularization parameter
-    svc = svm.SVC(kernel='linear', C=C, probability=True)  # Accuracy: 0.87 (+/- 0.07)
+    svc = svm.SVC(kernel='rbf', C=C, probability=True)  # Accuracy: 0.87 (+/- 0.07)
     # svc = svm.SVC(kernel='linear', C=C, class_weight={1:10}) #Accuracy: 0.77 (+/- 0.13)
     scores = cross_val_score(svc, X, y, cv=10, scoring='average_precision')
-    proba = cross_val_predict(svc, X, y, cv=10, method='predict')
     preditctions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
 
-    probability = preditctions[:, 0]
+    # classic version
+    avg_precision_score_v1 = sklearn.metrics.average_precision_score(y, preditctions[:, 1])
+
+    probability = preditctions[:, 1]
     x_vals = np.asarray(range(0,len(probability)))
 
     #sort probability
@@ -88,7 +117,7 @@ def main():
     diff_2nd = np.diff(proba_smooth, 2)
 
     #find first point above threshold
-    thresh = 0.001
+    thresh = 0.01
     limitIdx = None #This position corresponds to the limit between non interesting and interesting shots/key-frames.
     for i in range(len(diff_2nd)):
         if diff_2nd[i] > thresh:
@@ -96,50 +125,41 @@ def main():
             break
 
     #DEBUG
+    #limitPoint
     plt.plot(x_vals, probability, 'o')
     plt.plot(x_vals, proba_smooth, 'r-', lw=2)
     plt.plot(x_vals[i], proba_smooth[i], 'go')
     plt.show()
     #DEBUG END
 
-    y_pred = probability < proba_smooth[limitIdx]
+    y_pred = probability > proba_smooth[limitIdx]
 
     #calc new interestingness probability according to limit point
     proba_unint = probability[np.invert(y_pred)]
     proba_int = probability[y_pred]
 
-    #normalize uninteresting in range 0.5 - 1
-    proba_unint_scaled = sklearn.preprocessing.minmax_scale(proba_unint, feature_range=(0.5, 1))
-    #normalize interesting in range 0 - 0.5
-    proba_int_scaled = sklearn.preprocessing.minmax_scale(proba_int, feature_range=(0, 0.5))
+    #normalize uninteresting in range 0 - 0.5
+    proba_unint_scaled = sklearn.preprocessing.minmax_scale(proba_unint, feature_range=(0, 0.5))
+    #normalize interesting in range 0.5-1
+    proba_int_scaled = sklearn.preprocessing.minmax_scale(proba_int, feature_range=(0.5, 1))
 
     #set interesting and non interesting according to limitPoint
+    y_proba = np.concatenate((proba_int_scaled, proba_unint_scaled), axis=0)
+    avg_precision_score_v2 = sklearn.metrics.average_precision_score(y, y_proba)
 
 
 
-
-
-
-
-
-    #TEST
-    #x = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0])
-    #y = np.array([0.0, 0.8, 0.9, 0.1, -0.8, -1.0])
-    #z = np.polyfit(x, y, 3)
-    #p = np.poly1d(z)
-    #p_der = np.poly1d(np.polyder(p,1))
-    #p_der2 = np.poly1d(np.polyder(p, 2))
-    #xp = np.linspace(-2, 6, 100)
-    #_ = plt.plot(x, y, '.', xp, p(xp), '-', xp, p_der2(xp), '--')
-    ## plt.ylim(0,1)
-    #plt.show()
-
-
-
+    #DEBUG
+    #y = [1,1,0,0]
+    #y_proba = [0.9, 0.8, 0.4, 0.2]
+    #avg_precision_score = sklearn.metrics.average_precision_score(y, y_proba)
+    #DEBUG END
 
     #find border between interesting and uninteresting
 
     print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    print("Mean Average Precision - Version 1: %0.2f" % avg_precision_score_v1)
+    print("Mean Average Precision - Version 2: %0.2f" % avg_precision_score_v2)
     print("finished.")
 
 

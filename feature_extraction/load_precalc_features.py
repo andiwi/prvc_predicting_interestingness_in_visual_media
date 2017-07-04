@@ -15,12 +15,12 @@ def load_matlab_feature(path_to_imgs, feature_name):
     :param feature_name:
     :return: numpy array of features of all imgs in path_to_imgs directory
     '''
-    feature_root_dir = 'D:\\PR aus Visual Computing\\Interestingness17data\\features'
-
+    #feature_root_dir = 'D:\\PR aus Visual Computing\\Interestingness17data\\features'
+    feature_root_dir = '/home/andreas/Desktop/allimgs/features'
     img_names = read_img_names(path_to_imgs)
 
     features = []
-    'D:\\PR aus Visual Computing\\Interestingness17data\\features\\'
+
     for img_name in img_names:
 
         if feature_name == Features.DenseSIFT_L0:
@@ -51,7 +51,6 @@ def load_matlab_feature(path_to_imgs, feature_name):
             feature = _cnn_prob(feature_root_dir, img_name)
         else:
             raise NotImplementedError
-            # TODO do we need fc7 & prob layer of AlexNet and MFCC features?
 
         features.append(feature)
     return np.asarray(features)
