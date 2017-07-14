@@ -6,18 +6,15 @@ import numpy as np
 from file_handler.read_imgs import read_img_names, read_img
 
 
-def crop_black_borders(directory):
+def crop_black_borders(img_dirs):
     """
+    TODO good description
     crops black borders around image. and replaces imgages with cropped ones
-    :param directory: directory: path to image  (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting')
+    :param img_dirs: list of image paths
     :return: 
     """
-    print('crop_black_borders')
-    imgNames = read_img_names(directory)
-
-    for imgName in imgNames:
-        img = read_img(os.path.join(directory, imgName))
-        #img = read_img('C:\\Users\\Andreas\\Desktop\\test.jpg')
+    for img_dir in img_dirs:
+        img = read_img(img_dir)
 
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -66,9 +63,7 @@ def crop_black_borders(directory):
         imgPath = directory + '\\cropped\\' + imgName
         success = cv2.imwrite(imgPath, img)
         '''
-        imgPath = os.path.join(directory, imgName)
-        success = cv2.imwrite(imgPath, img)
-    print('finished')
+        success = cv2.imwrite(img_dir, img)
 
     '''
     #DEBUG Visualization

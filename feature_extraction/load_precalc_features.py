@@ -8,52 +8,47 @@ from file_handler.read_imgs import read_img_names
 from Features import Features
 
 
-def load_matlab_feature(path_to_imgs, feature_name):
+def load_precalc_feature(img_dir, feature_name):
     '''
     for all images in path_to_imgs directory: loads precalculated feature :feature_name
     :param path_to_imgs:
     :param feature_name:
     :return: numpy array of features of all imgs in path_to_imgs directory
     '''
-    #feature_root_dir = 'D:\\PR aus Visual Computing\\Interestingness17data\\features'
-    feature_root_dir = '/home/andreas/Desktop/allimgs/features'
-    img_names = read_img_names(path_to_imgs)
 
-    features = []
+    feature_root_dir = os.path.join(img_dir[:img_dir.find('/videos')], 'features')
+    img_name = img_dir[img_dir.rfind('/')+1:]
 
-    for img_name in img_names:
+    if feature_name == Features.DenseSIFT_L0:
+        feature = _denseSIFT_fe(feature_root_dir, img_name, level=0)
+    elif feature_name == Features.DenseSIFT_L1:
+        feature = _denseSIFT_fe(feature_root_dir, img_name, level=1)
+    elif feature_name == Features.DenseSIFT_L2:
+        feature = _denseSIFT_fe(feature_root_dir, img_name, level=2)
+    elif feature_name == Features.Hog_L0:
+        feature = _hog_fe(feature_root_dir, img_name, level=0)
+    elif feature_name == Features.Hog_L1:
+        feature = _hog_fe(feature_root_dir, img_name, level=1)
+    elif feature_name == Features.Hog_L2:
+        feature = _hog_fe(feature_root_dir, img_name, level=2)
+    elif feature_name == Features.Lbp_L0:
+        feature = _lbp_fe(feature_root_dir, img_name, level=0)
+    elif feature_name == Features.Lbp_L1:
+        feature = _lbp_fe(feature_root_dir, img_name, level=1)
+    elif feature_name == Features.Lbp_L2:
+        feature = _lbp_fe(feature_root_dir, img_name, level=2)
+    elif feature_name == Features.Gist:
+        feature = _gist_fe(feature_root_dir, img_name)
+    elif feature_name == Features.Hsv_hist:
+        feature = _colorHist_fe(feature_root_dir, img_name)
+    elif feature_name == Features.CNN_fc7:
+        feature = _cnn_fc7(feature_root_dir, img_name)
+    elif feature_name == Features.CNN_prob:
+        feature = _cnn_prob(feature_root_dir, img_name)
+    else:
+        raise NotImplementedError
 
-        if feature_name == Features.DenseSIFT_L0:
-            feature = _denseSIFT_fe(feature_root_dir, img_name, level=0)
-        elif feature_name == Features.DenseSIFT_L1:
-            feature = _denseSIFT_fe(feature_root_dir, img_name, level=1)
-        elif feature_name == Features.DenseSIFT_L2:
-            feature = _denseSIFT_fe(feature_root_dir, img_name, level=2)
-        elif feature_name == Features.Hog_L0:
-            feature = _hog_fe(feature_root_dir, img_name, level=0)
-        elif feature_name == Features.Hog_L1:
-            feature = _hog_fe(feature_root_dir, img_name, level=1)
-        elif feature_name == Features.Hog_L2:
-            feature = _hog_fe(feature_root_dir, img_name, level=2)
-        elif feature_name == Features.Lbp_L0:
-            feature = _lbp_fe(feature_root_dir, img_name, level=0)
-        elif feature_name == Features.Lbp_L1:
-            feature = _lbp_fe(feature_root_dir, img_name, level=1)
-        elif feature_name == Features.Lbp_L2:
-            feature = _lbp_fe(feature_root_dir, img_name, level=2)
-        elif feature_name == Features.Gist:
-            feature = _gist_fe(feature_root_dir, img_name)
-        elif feature_name == Features.Hsv_hist:
-            feature = _colorHist_fe(feature_root_dir, img_name)
-        elif feature_name == Features.CNN_fc7:
-            feature = _cnn_fc7(feature_root_dir, img_name)
-        elif feature_name == Features.CNN_prob:
-            feature = _cnn_prob(feature_root_dir, img_name)
-        else:
-            raise NotImplementedError
-
-        features.append(feature)
-    return np.asarray(features)
+    return feature
 
 
 def _colorHist_fe(feature_root_path, img_name):

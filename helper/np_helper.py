@@ -34,3 +34,16 @@ def numpy_fillcolswithzeros(array1, array2):
         array1 = np.concatenate((array1, zeros), axis=1)
 
     return array1, array2
+
+def numpy_extend_cols_array_w_zeros(array, zero_count):
+    '''
+    fill array columns with zeros
+    :param array: (numpy array) the columns will be filled with zeros
+    :param zero_count: (int) the amount of zeros which should be added
+    :return: reshaped array
+    '''
+    r, c = array.shape
+    zeros = np.zeros((r, zero_count))
+    array = np.concatenate((array, zeros), axis=1)
+
+    return array

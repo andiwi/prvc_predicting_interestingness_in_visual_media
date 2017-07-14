@@ -10,20 +10,13 @@ from helper.Geometry import Rect
 from helper.np_helper import numpy_fillwithzeros
 
 
-def face_to_img_ratios_to_csv(directory, face_frontal_cascade = None, face_profile_cascade = None):
+def face_to_img_ratios_to_csv(directory, face_frontal_cascade, face_profile_cascade):
     '''
     calculates the ratio between image height and face heights and writes them in a csv file.
     saves csv file at './face_img_ratios.csv'
     :param directory: path to images (e.x.: 'D:\\PR aus Visual Computing\\Interestingness16data\\allvideos\\images\\interesting\\cropped\\faces')
     :return: 
     '''
-    directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-    if face_frontal_cascade is None:
-        face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-
-    if face_profile_cascade is None:
-        face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
-
     imgNames = read_img_names(directory)
 
     csvfile = open(directory + '\\face_to_img_ratios.csv', 'wb')
@@ -38,19 +31,12 @@ def face_to_img_ratios_to_csv(directory, face_frontal_cascade = None, face_profi
 
     csvfile.close()
 
-def calc_face_to_img_height_ratio(img, face_frontal_cascade = None, face_profile_cascade = None):
+def calc_face_to_img_height_ratio(img, face_frontal_cascade, face_profile_cascade):
     '''
     calculates the ratio between image height and face height
     :param img: 
     :return: dict(face, percentage of face height relative to image height) 
     '''
-    directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-    if face_frontal_cascade is None:
-        face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-
-    if face_profile_cascade is None:
-        face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
-
     faces_height = dict()
 
     rect_faces_final, rect_faces_frontal, rect_faces_profile = detect_faces(img, face_frontal_cascade, face_profile_cascade)
@@ -63,7 +49,7 @@ def calc_face_to_img_height_ratio(img, face_frontal_cascade = None, face_profile
 
     return faces_height
 
-def detect_faces(img, face_frontal_cascade = None, face_profile_cascade = None):
+def detect_faces(img, face_frontal_cascade, face_profile_cascade):
     '''
     detects faces in image with viola jones algorithm using frontal face and profileface haar features.
     :param img: opencv image
@@ -71,13 +57,6 @@ def detect_faces(img, face_frontal_cascade = None, face_profile_cascade = None):
     :param face_profile_cascade: opencv cascade classifier for profile faces
     :return: list of Rect containing face bounding boxes, list of Rect containing all frontal face bounding boxes, list of Rect containing all profile face bounding boxes
     '''
-    directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-    if face_frontal_cascade is None:
-        face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-
-    if face_profile_cascade is None:
-        face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
-
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     rect_faces_all = []
@@ -116,7 +95,7 @@ def detect_faces(img, face_frontal_cascade = None, face_profile_cascade = None):
 
     return rect_faces_final, rect_faces_frontal, rect_faces_profile
 
-def face_detection(directory, face_frontal_cascade = None, face_profile_cascade = None): #TODO rename method to face_feature_calculation
+def face_detection(directory, face_frontal_cascade, face_profile_cascade): #TODO rename method to face_feature_calculation
     '''
     detects faces with viola jones algorithm using frontal face and profileface haar features. 
     NOTE: returns unscaled feature vectors (numpy arrays)
@@ -125,14 +104,6 @@ def face_detection(directory, face_frontal_cascade = None, face_profile_cascade 
              rule_of_thirds_distance_np ...distance of biggest face center to nearest rule of thirds grid corner
              imgs_feature_matrix        ...face bounding boxes x,y,w,h, x,y,w,h,...
     '''
-    directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-    if face_frontal_cascade is None:
-        face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-
-    if face_profile_cascade is None:
-        face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
-
-
     imgNames = read_img_names(directory)
 
 

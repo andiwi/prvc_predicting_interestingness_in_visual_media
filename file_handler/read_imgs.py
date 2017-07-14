@@ -1,5 +1,6 @@
 import cv2
 import os
+import glob
 
 def read_imgs(directory):
 
@@ -23,3 +24,12 @@ def read_img_names(directory):
 def read_img(imgPath):
     img = cv2.imread(imgPath)
     return img
+
+def read_img_dirs(dir):
+    img_dirs = list()
+
+    for root, dirs, files in os.walk(dir):
+        for file_path in glob.glob(os.path.join(root, '*.jpg')):
+            img_dirs.append(file_path)
+
+    return img_dirs

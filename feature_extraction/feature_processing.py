@@ -13,10 +13,10 @@ def scale_features(features):
     :return: scaled_features
     """
     scaled_features = {}
-    for name in features:
-        interesting = preprocessing.scale(features[name][0])
-        uninteresting = preprocessing.scale(features[name][1])
-        scaled_features[name] = [interesting, uninteresting]
+    for img_dir in features:
+        scaled_features[img_dir] = dict()
+        for feature_name in features[img_dir]:
+            scaled_features[img_dir][feature_name] = preprocessing.scale(features[img_dir][feature_name])
 
     return scaled_features
 
@@ -28,6 +28,18 @@ def concat_features(features):
     :return: concatenated features
     """
     concated_features = {}
+
+    for img_dir in features:
+        concated_features[img_dir] = dict()
+        for feature_name in features[img_dir]:
+            if feature_name == Features.Face_bb:
+                # bring bounding box feature matrices to same shape
+                # find matrix with maximal columns and reshape other matrix before concatenating them
+                #TODO
+                print('TODO')
+            else:
+                concated_features[img_dir]
+
     for name in features:
         if name == Features.Face_bb:
             # bring bounding box feature matrices to same shape
@@ -47,10 +59,18 @@ def reshape_arrays_1D_to_2D(features):
     :return:
     """
     reshaped_features = features
+
+    for img_dir in features:
+        for feature_name in features[img_dir]:
+            if features[img_dir][feature_name].ndim == 1:
+                reshaped_features[img_dir][feature_name] = np.reshape(features[img_dir][feature_name], (len(features[img_dir][feature_name]), 1))
+
+    '''
+    reshaped_features = features
     for name in features:
         if features[name].ndim == 1:
             reshaped_features[name] = np.reshape(features[name], (len(features[name]), 1))
-
+    '''
     return reshaped_features
 
 
@@ -60,26 +80,48 @@ def gen_final_feature_matrix(features):
     :param features:
     :return:
     """
-    for name in features:
-        try:
-            final_feature_mat = np.c_[final_feature_mat, features[name]]
-        except NameError:
-            # only the first feature will raise this exception
-            final_feature_mat = features[name]
+    final_feature_mat = []
 
-    return final_feature_mat
+    for img_dir in features:
+        final_feature_vec = []
+        for feature_name in features[img_dir]:
+            final_feature_vec.extend(features[img_dir][feature_name].tolist())
+            #final_feature_vec = np.c_[final_feature_vec, features[img_dir][feature_name]]
+
+        final_feature_mat.append(final_feature_vec)
+
+    return np.asarray(final_feature_mat)
 
 
-def get_target_vec(dir):
+def get_target_vec(img_dirs):
     """
     calculates the target vector. 1 = interesting, 0 = uninteresting
     :param dir:
     :return:
     """
-    img_names_interesting = read_img_names(os.path.join(dir, 'interesting'))
-    img_names_uninteresting = read_img_names(os.path.join(dir, 'uninteresting'))
-    target_interesting = np.ones((len(img_names_interesting),))
-    target_uninteresting = np.zeros((len(img_names_uninteresting),))
+    target_vec = []
 
-    y = np.concatenate((target_interesting, target_uninteresting), axis=0)
-    return y
+    for img_dir in img_dirs:
+        target_vec.append(img_dirs[img_dir])
+
+    return np.asarray(target_vec)
+
+def make_features_equal_column_size(features, feature_name):
+    """
+    detects feature vector of image with the most columns and adds zeros to the other feature vectors so that all
+    feature vectors have same amount of columns
+    :param features: (dict) all features
+    :param feature_name: (string) the feature where vectors should be equalized
+    :return: dict with equal all features where column number within a feature class is the same
+    """
+    for img_dir in features:
+        max_col_size = 0
+        r, c = features[img_dir][feature_name].shape
+        if c > max_col_size:
+            max_col_size = c
+
+    for img_dir in features:
+        r,c = features[img_dir][feature_name].shape
+        features[img_dir][feature_name] = np_helper.numpy_extend_cols_array_w_zeros(features[img_dir][feature_name], max_col_size - c)
+
+    return features

@@ -10,14 +10,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import file_handler
-import preprocessing
+import preprocessing.preprocessing as prvc_preprocessing
 import postprocessing
 from feature_extraction import feature_calculation#, obj_recognition
 from feature_extraction.feature_processing import scale_features, concat_features, reshape_arrays_1D_to_2D, \
-    gen_final_feature_matrix, get_target_vec
+    gen_final_feature_matrix, get_target_vec, make_features_equal_column_size
 from Features import Features
 from file_handler import feature_files
-from file_handler.read_imgs import read_img_names
+from file_handler.read_gt_file import read_img_dirs_and_gt
+from file_handler.read_imgs import read_img_dirs
 from helper import box_filter
 
 
@@ -27,14 +28,14 @@ def main():
         #Features.Face_count,
         #Features.Rot_distance,
         #Features.Face_bb,
-        #Features.Face_bb_full_img,
+        Features.Face_bb_full_img,
         #Features.Face_bb_quarter_imgs,
         #Features.Face_bb_eighth_imgs,
         #Features.Tilted_edges,
         #Features.Edge_hist_v0,
         #Features.Edge_hist_v1,
         #Features.Edge_hist_v2,
-        Features.Symmetry,
+        #Features.Symmetry,
         #Features.Hsv_hist,
         #Features.DenseSIFT_L0,
         #Features.DenseSIFT_L1,
@@ -45,7 +46,7 @@ def main():
         #Features.Lbp_L0,
         #Features.Lbp_L1,
         #Features.Lbp_L2,
-        #Features.Gist,
+        Features.Gist,
         #Features.CNN_fc7,
         #Features.CNN_prob
     ]
@@ -53,53 +54,61 @@ def main():
     do_preprocessing = False
     calc_features = False
 
-    directory_root = 'D:\\PR aus Visual Computing\\Interestingness17data\\allvideos\\images'
-    #directory_root = 'C:\Users\Andreas\Desktop\\testimgs'
-    #directory_root = '/home/andreas/Desktop/testimgs'
-    #directory_root = '/home/andreas/Desktop/allimgs'
-    dir_training_data = os.path.join(directory_root, 'trainingData')
-    dir_test_data = os.path.join(directory_root, 'testData')
+    global dir_root
+    dir_root = '/home/andreas/Desktop/InterestingnessData16_small'
+    #root directories for training and test data
+    dir_training_data = os.path.join(dir_root, 'devset')
+    dir_test_data = os.path.join(dir_root, 'testset')
 
+    #dicts containing path to images as keys and ground truth as values
+    img_dirs_training = read_img_dirs_and_gt(dir_training_data)
+    img_dirs_test = read_img_dirs(dir_test_data)
 
     # preprocessing
     if (do_preprocessing):
-        preprocessing.preprocessing(directory_root)
+        prvc_preprocessing.preprocessing(img_dirs_training.keys())
+        prvc_preprocessing.preprocessing(img_dirs_test)
         print 'preprocessing finished.'
 
     # calculate features
     if calc_features:
-        features = feature_calculation.calc_features(dir_training_data, feature_names)
-
-        # save unscaled features
-        feature_files.save_features(dir_training_data, features)
+        features_train = feature_calculation.calc_features(img_dirs_training.keys(), feature_names)
+        features_test = feature_calculation.calc_features(img_dirs_test, feature_names)
         print 'feature calculation finished.'
 
     else:
         # load features from files
-        features = feature_files.load_features(dir_training_data, feature_names)
+        features_train = feature_files.load_features(img_dirs_training.keys(), feature_names)
+        features_test = feature_files.load_features(img_dirs_test, feature_names)
 
     # scale features (because svm is not scale invariant)
-    features = scale_features(features)
+    features_train = scale_features(features_train)
+    features_test = scale_features(features_test)
 
-    # concatenate features
-    features = concat_features(features)
-
-    # reshape 1D arrays to 2D arrays
-    features = reshape_arrays_1D_to_2D(features)
+    if Features.Face_bb in feature_names:
+       # bring bounding box feature matrices to same shape
+       # find matrix with maximal columns and reshape other matrix before concatenating them
+       features_train = make_features_equal_column_size(features_train, Features.Face_bb)
+       features_test = make_features_equal_column_size(features_test, Features.Face_bb)
 
     # generate final feature matrix
-    X = gen_final_feature_matrix(features)
-
-    # TODO do pca analysis
+    X_train = gen_final_feature_matrix(features_train)
+    X_test = gen_final_feature_matrix(features_test)
 
     # get interestingness
-    y = get_target_vec(dir_training_data)
+    y_train = get_target_vec(img_dirs_training)
+    #y_test = get_target_vec(img_dirs_test)
 
     #
     # train and test svm
     #
     C = 1.0  # SVM regularization parameter
     svc = svm.SVC(kernel='rbf', C=C, probability=True)
+
+    #train svm
+    svc.fit(X_train, y_train)
+    #classify test set
+    y_proba = svc.predict_proba(X_test)
 
     #TODO for final submission
     ##choose random 10 imgs as test set
@@ -116,10 +125,7 @@ def main():
     #X_test = X[testIdxs]
     #y_test = y[testIdxs]
     #
-    ##train svm
-    #svc.fit(X_train, y_train)
-    ##classify test set
-    #y_proba = svc.predict_proba(X_test)
+
 #
     #submission_format = postprocessing.gen_submission_format(img_names_test, y_proba)
     #file_handler.save_submission(submission_format)

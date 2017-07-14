@@ -92,3 +92,40 @@ def filecopy():
             shutil.copy2(uninterestingImgDirFrom, uninterestingImgDirTo)
 
     print('finished copying uninteresting files in single directory')
+
+def extract_interesting_uninteresting_images(dir):
+    '''
+    read groundtruth file and copies images into interesting and uninteresting directories
+    :param: dir... the root directory of the dataset ex. './InterestingnessData16/devset' or './InterestingnessData16/testset
+    :return:
+    '''
+    gt_path = os.path.join(dir, 'devset', 'annotations', 'devset-image.txt')
+
+    dir_interesting = os.path.join(dir, 'devset', 'imgs_interesting')
+    dir_uninteresting = os.path.join(dir, 'devset', 'imgs_uninteresting')
+
+    #create directories
+    if not os.path.exists(dir_interesting):
+        os.makedirs(dir_interesting)
+
+    if not os.path.exists(dir_uninteresting):
+        os.makedirs(dir_uninteresting)
+
+    #read ground truth file
+    with open(gt_path) as f:
+        gt_content = f.readlines()
+        gt_content = [x.strip() for x in gt_content] #remove whitespace characters like `\n` at the end of each line
+        gt_content = [x.split(',') for x in gt_content] #split by delimiter ','
+
+
+    #copy images into interesting and uninteresting directory
+    for row in gt_content:
+        img_dir_from = os.path.join(dir, 'devset', 'videos', row[0], 'images', row[1])
+
+        if row[2] == '1':
+            #interesting
+            shutil.copy2(img_dir_from, dir_interesting)
+
+        elif row[2] == '0':
+            #uninteresting
+            shutil.copy2(img_dir_from, dir_uninteresting)

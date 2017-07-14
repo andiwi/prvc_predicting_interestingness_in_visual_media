@@ -23,3 +23,21 @@ class Features(object):
     Gist = 'gist'
     CNN_fc7 = 'cnn_fc7'
     CNN_prob = 'cnn_prob'
+
+    @staticmethod
+    def isTUFeature(feature_name):
+        if feature_name == Features.Face_count \
+            or feature_name == Features.Rot_distance \
+            or feature_name == Features.Face_bb \
+            or feature_name == Features.Face_bb_full_img \
+            or feature_name == Features.Face_bb_quarter_imgs \
+            or feature_name == Features.Face_bb_eighth_imgs \
+            or feature_name == Features.Tilted_edges \
+            or feature_name == Features.Edge_hist_v0 \
+            or feature_name == Features.Edge_hist_v1 \
+            or feature_name == Features.Edge_hist_v2 \
+            or feature_name == Features.Symmetry:
+            return True
+        else:
+            return False
+

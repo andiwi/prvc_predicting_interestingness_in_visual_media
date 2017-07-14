@@ -1,18 +1,26 @@
 import os
 import numpy as np
+from Features import Features
+from feature_extraction.load_precalc_features import load_precalc_feature
 
-def save_features(dir, features):
+
+def save_features(img_dir, feature_name, feature):
     """
-    saves features in files
-    :param dir:
-    :param features:
+    save features of img in .txt file (compressed in gzip format)
+    :param img_dir: (string) path of the image
+    :param feature_name: (string) name of the features (should be one of Features enumeration)
+    :param feature: (numpy array) the features
     :return:
     """
-    for name in features:
-        np.savetxt(os.path.join(dir, name + '_interesting.gz'), features[name][0])
-        np.savetxt(os.path.join(dir, name + '_uninteresting.gz'), features[name][1])
 
-def load_features(dir, feature_names):
+    #create feature file path
+    feature_file_path = os.path.join(img_dir[:img_dir.find('/videos/')], 'features', 'Features_From_TUWien', 'Image_Subtask', feature_name, img_dir[img_dir.find('/videos/')+8:] + '.txt.gz')
+    dirs = feature_file_path[:feature_file_path.rfind('/')]
+    if not os.path.exists(dirs):
+        os.makedirs(dirs)
+    np.savetxt(feature_file_path, feature, newline=' ')
+
+def load_features(img_dirs, feature_names):
     """
     loads features from file
     :param dir:
@@ -21,9 +29,20 @@ def load_features(dir, feature_names):
     """
     features = {}
 
-    for name in feature_names:
-        interesting = np.loadtxt(os.path.join(dir, name + '_interesting.gz'))
-        uninteresting = np.loadtxt(os.path.join(dir, name + '_uninteresting.gz'))
-        features[name] = [interesting, uninteresting]
+    for img_dir in img_dirs:
+        features[img_dir] = dict()
+        for feature_name in feature_names:
+            if Features.isTUFeature(feature_name):
+                feature = _load_TU_feature(img_dir, feature_name)
+            else:
+                feature = load_precalc_feature(img_dir, feature_name)
 
+            features[img_dir][feature_name] = feature
     return features
+
+def _load_TU_feature(img_dir, feature_name):
+    feature_file_path = os.path.join(img_dir[:img_dir.find('/videos/')], 'features', 'Features_From_TUWien',
+                                     'Image_Subtask', feature_name,
+                                     img_dir[img_dir.find('/videos/') + 8:] + '.txt.gz')
+    feature = np.loadtxt(feature_file_path)
+    return feature

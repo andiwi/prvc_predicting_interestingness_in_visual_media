@@ -1,24 +1,19 @@
 import os
-from collections import OrderedDict
 import cv2
 import numpy as np
 
 from face_detection import detect_faces
-from file_handler.read_imgs import read_img_names, read_img
+from feature_extraction.load_precalc_features import load_precalc_feature
+from file_handler.read_imgs import read_img
 from mpeg7_edge_histogram import calc_edge_histogram
-from feature_extraction.load_precalc_features import load_matlab_feature
 from face_detection import face_detection
 from chainercv.links import FasterRCNNVGG16
-from chainercv.visualizations import vis_bbox
-from chainercv.datasets import voc_detection_label_names
-from chainercv import utils
-import matplotlib.pyplot as plot
 from Features import Features
 from helper.Geometry import Rect
 from file_handler import feature_files
 
 
-def calc_features(dir, feature_names):
+def calc_features(img_dirs, feature_names):
     '''
     calculates all features given by feature_names
     :param (String) dir: directory containing subdirectories 'interesting' and 'uninteresting' which contain images
@@ -26,245 +21,185 @@ def calc_features(dir, feature_names):
     :return: (dict) {feature_name: [features_interesting, features_uninteresting]}
     '''
     features = {}
-    dir_int = os.path.join(dir, 'interesting')
-    dir_unint = os.path.join(dir, 'uninteresting')
 
-    for name in feature_names:
-        if name == Features.Face_count or name == Features.Rot_distance or name == Features.Face_bb:
-            print Features.Face_count
-            directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-            face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-            face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
+    dir_haarfeatures = os.path.join(os.getcwd(), 'res', 'haarcascades')
+    face_frontal_cascade = cv2.CascadeClassifier(os.path.join(dir_haarfeatures, 'haarcascade_frontalface_default.xml'))
+    face_profile_cascade = cv2.CascadeClassifier(os.path.join(dir_haarfeatures, 'haarcascade_profileface.xml'))
 
-            face_count_interesting, rot_distance_interesting, face_bb_interesting = face_detection(dir_int)
-            face_count_uninteresting, rot_distance_uninteresting, face_bb_uninteresting = face_detection(dir_unint)
+    model = FasterRCNNVGG16(pretrained_model='voc07')
 
-            features[Features.Face_count] = [face_count_interesting, face_count_uninteresting]
-            features[Features.Rot_distance] = [rot_distance_interesting, rot_distance_uninteresting]
-            features[Features.Face_bb] = [face_bb_interesting, face_bb_uninteresting]
+    for img_dir in img_dirs:
+        img = read_img(img_dir)
+        features[img_dir] = dict() #init features dict for each image
 
-            feature_files.save_features(dir, features)
+        for name in feature_names:
+            if name == Features.Face_count or name == Features.Rot_distance or name == Features.Face_bb:
+                face_count, rot_distance, face_bb = face_detection(img)
 
-        elif name == Features.Face_bb_full_img:
-            print Features.Face_bb_full_img
-            directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-            face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-            face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
+                feature_files.save_features(img_dir, Features.Face_count, face_count)
+                feature_files.save_features(img_dir, Features.Rot_distance, rot_distance)
+                feature_files.save_features(img_dir, Features.Face_bb, face_bb)
 
-            interesting = _calc_features(dir_int, face_bb_full_img_calculator, face_frontal_cascade,
-                                         face_profile_cascade)
-            uninteresting = _calc_features(dir_unint, face_bb_full_img_calculator, face_frontal_cascade,
-                                           face_profile_cascade)
-            features[Features.Face_bb_full_img] = [interesting, uninteresting]
+                features[img_dir][Features.Face_count] = face_count
+                features[img_dir][Features.Rot_distance] = rot_distance
+                features[img_dir][Features.Face_bb] = face_bb
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Face_bb_full_img:
+                feature = _face_bb_full_img_calculator(img, face_frontal_cascade, face_profile_cascade)
+                feature_files.save_features(img_dir, Features.Face_bb_full_img, feature)
 
-        elif name == Features.Face_bb_quarter_imgs:
-            Features.Face_bb_quarter_imgs
-            directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-            face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-            face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
+                features[img_dir][Features.Face_bb_full_img] = feature
 
-            interesting = _calc_features(dir_int, face_bb_quarter_imgs_calculator, face_frontal_cascade,
-                                         face_profile_cascade)
-            uninteresting = _calc_features(dir_unint, face_bb_quarter_imgs_calculator, face_frontal_cascade,
-                                           face_profile_cascade)
-            features[Features.Face_bb_quarter_imgs] = [interesting, uninteresting]
+            elif name == Features.Face_bb_quarter_imgs:
+                feature = _face_bb_quarter_imgs_calculator(img, face_frontal_cascade, face_profile_cascade)
+                feature_files.save_features(img_dir, Features.Face_bb_quarter_imgs, feature)
 
-            feature_files.save_features(dir, features)
+                features[img_dir][Features.Face_bb_quarter_imgs] = feature
 
-        elif name == Features.Face_bb_eighth_imgs:
-            Features.Face_bb_eighth_imgs
-            directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
-            face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
-            face_profile_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_profileface.xml')
+            elif name == Features.Face_bb_eighth_imgs:
+                feature = _face_bb_eighth_imgs_calculator(img, face_frontal_cascade, face_profile_cascade)
+                feature_files.save_features(img_dir, Features.Face_bb_eighth_imgs, feature)
 
-            interesting = _calc_features(dir_int, face_bb_eighth_imgs_calculator, face_frontal_cascade,
-                                         face_profile_cascade)
-            uninteresting = _calc_features(dir_unint, face_bb_eighth_imgs_calculator, face_frontal_cascade,
-                                           face_profile_cascade)
-            features[Features.Face_bb_eighth_imgs] = [interesting, uninteresting]
+                features[img_dir][Features.Face_bb_eighth_imgs] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Tilted_edges:
+                feature = _img_tilted_calculator(img)
+                feature_files.save_features(img_dir, Features.Tilted_edges, feature)
 
-        elif name == Features.Tilted_edges:
-            print Features.Tilted_edges
-            interesting = _calc_features(dir_int, img_tilted_calculator)
-            uninteresting = _calc_features(dir_unint, img_tilted_calculator)
-            features[Features.Tilted_edges] = [interesting, uninteresting]
+                features[img_dir][Features.Tilted_edges] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Edge_hist_v0:
+                feature = _edge_hist_dir_calculator(img, False, False)
+                feature_files.save_features(img_dir, Features.Edge_hist_v0, feature)
 
-        elif name == Features.Edge_hist_v0:
-            print Features.Edge_hist_v0
-            interesting = _calc_features(dir_int, edge_hist_dir_calculator, False, False)
-            uninteresting = _calc_features(dir_unint, edge_hist_dir_calculator, False, False)
-            features[Features.Edge_hist_v0] = [interesting, uninteresting]
+                features[img_dir][Features.Edge_hist_v0] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Edge_hist_v1:
+                feature = _edge_hist_dir_calculator(img, True, True)
+                feature_files.save_features(img_dir, Features.Edge_hist_v1, feature)
 
-        elif name == Features.Edge_hist_v1:
-            print Features.Edge_hist_v1
-            interesting = _calc_features(dir_int, edge_hist_dir_calculator, True, True)
-            uninteresting = _calc_features(dir_unint, edge_hist_dir_calculator, True, True)
-            features[Features.Edge_hist_v1] = [interesting, uninteresting]
+                features[img_dir][Features.Edge_hist_v1] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Edge_hist_v2:
+                feature = _edge_hist_dir_calculator(img, True, False)
+                feature_files.save_features(img_dir, Features.Edge_hist_v2, feature)
 
-        elif name == Features.Edge_hist_v2:
-            print Features.Edge_hist_v2
-            interesting = _calc_features(dir_int, edge_hist_dir_calculator, True, False)
-            uninteresting = _calc_features(dir_unint, edge_hist_dir_calculator, True, False)
-            features[Features.Edge_hist_v2] = [interesting, uninteresting]
+                features[img_dir][Features.Edge_hist_v2] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Symmetry:
+                feature = _symmetry_calculator(img, model)
+                feature_files.save_features(img_dir, Features.Symmetry, feature)
 
-        elif name == Features.Symmetry:
-            print Features.Symmetry
-            model = FasterRCNNVGG16(pretrained_model='voc07')
+                features[img_dir][Features.Symmetry] = feature
 
-            interesting = _calc_features(dir_int, _symmetry_calculator, model)
-            uninteresting = _calc_features(dir_unint, _symmetry_calculator, model)
-            features[Features.Symmetry] = [interesting, uninteresting]
+            # precalculated features
+            elif name == Features.Hsv_hist:
+                feature = load_precalc_feature(img_dir, Features.Hsv_hist)
+                feature_files.save_features(img_dir, Features.Hsv_hist, feature)
 
-            feature_files.save_features(dir, features)
+                features[img_dir][Features.Hsv_hist] = feature
 
+            elif name == Features.DenseSIFT_L0:
+                feature = load_precalc_feature(img_dir, Features.DenseSIFT_L0)
+                feature_files.save_features(img_dir, Features.DenseSIFT_L0, feature)
 
-        # precalculated features
-        elif name == Features.Hsv_hist:
-            print Features.Hsv_hist
-            interesting = load_matlab_feature(dir_int, Features.Hsv_hist)
-            uninteresting = load_matlab_feature(dir_unint, Features.Hsv_hist)
-            features[Features.Hsv_hist] = [interesting, uninteresting]
+                features[img_dir][Features.DenseSIFT_L0] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.DenseSIFT_L1:
+                feature = load_precalc_feature(img_dir, Features.DenseSIFT_L1)
+                feature_files.save_features(img_dir, Features.DenseSIFT_L1, feature)
 
-        elif name == Features.DenseSIFT_L0:
-            print Features.DenseSIFT_L0
-            interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L0)
-            uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L0)
-            features[Features.DenseSIFT_L0] = [interesting, uninteresting]
+                features[img_dir][Features.DenseSIFT_L1] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.DenseSIFT_L2:
+                feature = load_precalc_feature(img_dir, Features.DenseSIFT_L2)
+                feature_files.save_features(img_dir, Features.DenseSIFT_L2, feature)
 
-        elif name == Features.DenseSIFT_L1:
-            print Features.DenseSIFT_L1
-            interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L1)
-            uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L1)
-            features[Features.DenseSIFT_L1] = [interesting, uninteresting]
+                features[img_dir][Features.DenseSIFT_L2] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Hog_L0:
+                feature = load_precalc_feature(img_dir, Features.Hog_L0)
+                feature_files.save_features(img_dir, Features.Hog_L0, feature)
 
-        elif name == Features.DenseSIFT_L2:
-            print Features.DenseSIFT_L2
-            interesting = load_matlab_feature(dir_int, Features.DenseSIFT_L2)
-            uninteresting = load_matlab_feature(dir_unint, Features.DenseSIFT_L2)
-            features[Features.DenseSIFT_L2] = [interesting, uninteresting]
+                features[img_dir][Features.Hog_L0] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Hog_L1:
+                feature = load_precalc_feature(img_dir, Features.Hog_L1)
+                feature_files.save_features(img_dir, Features.Hog_L1, feature)
 
-        elif name == Features.Hog_L0:
-            print Features.Hog_L0
-            interesting = load_matlab_feature(dir_int, Features.Hog_L0)
-            uninteresting = load_matlab_feature(dir_unint, Features.Hog_L0)
-            features[Features.Hog_L0] = [interesting, uninteresting]
+                features[img_dir][Features.Hog_L1] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Hog_L2:
+                feature = load_precalc_feature(img_dir, Features.Hog_L2)
+                feature_files.save_features(img_dir, Features.Hog_L2, feature)
 
-        elif name == Features.Hog_L1:
-            print Features.Hog_L1
-            interesting = load_matlab_feature(dir_int, Features.Hog_L1)
-            uninteresting = load_matlab_feature(dir_unint, Features.Hog_L1)
-            features[Features.Hog_L1] = [interesting, uninteresting]
+                features[img_dir][Features.Hog_L2] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Lbp_L0:
+                feature = load_precalc_feature(img_dir, Features.Lbp_L0)
+                feature_files.save_features(img_dir, Features.Lbp_L0, feature)
 
-        elif name == Features.Hog_L2:
-            print Features.Hog_L2
-            interesting = load_matlab_feature(dir_int, Features.Hog_L2)
-            uninteresting = load_matlab_feature(dir_unint, Features.Hog_L2)
-            features[Features.Hog_L2] = [interesting, uninteresting]
+                features[img_dir][Features.Lbp_L0] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Lbp_L1:
+                feature = load_precalc_feature(img_dir, Features.Lbp_L1)
+                feature_files.save_features(img_dir, Features.Lbp_L1, feature)
 
-        elif name == Features.Lbp_L0:
-            print Features.Lbp_L0
-            interesting = load_matlab_feature(dir_int, Features.Lbp_L0)
-            uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L0)
-            features[Features.Lbp_L0] = [interesting, uninteresting]
+                features[img_dir][Features.Lbp_L1] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Lbp_L2:
+                feature = load_precalc_feature(img_dir, Features.Lbp_L2)
+                feature_files.save_features(img_dir, Features.Lbp_L2, feature)
 
-        elif name == Features.Lbp_L1:
-            print Features.Lbp_L1
-            interesting = load_matlab_feature(dir_int, Features.Lbp_L1)
-            uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L1)
-            features[Features.Lbp_L1] = [interesting, uninteresting]
+                features[img_dir][Features.Lbp_L2] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.Gist:
+                feature = load_precalc_feature(img_dir, Features.Gist)
+                feature_files.save_features(img_dir, Features.Gist, feature)
 
-        elif name == Features.Lbp_L2:
-            print Features.Lbp_L2
-            interesting = load_matlab_feature(dir_int, Features.Lbp_L2)
-            uninteresting = load_matlab_feature(dir_unint, Features.Lbp_L2)
-            features[Features.Lbp_L2] = [interesting, uninteresting]
+                features[img_dir][Features.Gist] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.CNN_fc7:
+                feature = load_precalc_feature(img_dir, Features.CNN_fc7)
+                feature_files.save_features(img_dir, Features.CNN_fc7, feature)
 
-        elif name == Features.Gist:
-            print Features.Gist
-            interesting = load_matlab_feature(dir_int, Features.Gist)
-            uninteresting = load_matlab_feature(dir_unint, Features.Gist)
-            features[Features.Gist] = [interesting, uninteresting]
+                features[img_dir][Features.CNN_fc7] = feature
 
-            feature_files.save_features(dir, features)
+            elif name == Features.CNN_prob:
+                feature = load_precalc_feature(img_dir, Features.CNN_prob)
+                feature_files.save_features(img_dir, Features.CNN_prob, feature)
 
-        elif name == Features.CNN_fc7:
-            print Features.CNN_fc7
-            interesting = load_matlab_feature(dir_int, Features.CNN_fc7)
-            uninteresting = load_matlab_feature(dir_unint, Features.CNN_fc7)
-            features[Features.CNN_fc7] = [interesting, uninteresting]
+                features[img_dir][Features.CNN_prob] = feature
 
-            feature_files.save_features(dir, features)
-
-        elif name == Features.CNN_prob:
-            print Features.CNN_prob
-            interesting = load_matlab_feature(dir_int, Features.CNN_prob)
-            uninteresting = load_matlab_feature(dir_unint, Features.CNN_prob)
-            features[Features.CNN_prob] = [interesting, uninteresting]
-
-            feature_files.save_features(dir, features)
-
-        else:
-            raise NotImplementedError
+            else:
+                raise NotImplementedError
 
     return features
 
 
-def _calc_features(directory, feature_calculator, *args):
-    img_names = read_img_names(directory)
-
+def _calc_features(img_dirs, feature_calculator, *args):
     #DEBUG
-    counter = 0
+    # counter = 0
     #DEBUG END
     features = []
-    for img_name in img_names:
-        img = read_img(os.path.join(directory, img_name))
+    for img_dir in img_dirs:
+        img = read_img(img_dir)
 
         if args is None:
             feature = feature_calculator(img)
         else:
             feature = feature_calculator(img, *args)
 
+        feature_files.save_features(img_dir, feature)
         features.append(feature)
         #DEBUG
-        print 'image: ' + str(counter)
-        counter = counter+1
+        # print 'image: ' + str(counter)
+        # counter = counter+1
         #DEBUG END
     return np.asarray(features)
 
 
-def face_count_calculator(img, face_frontal_cascade=None, face_profile_cascade=None):
+def _face_count_calculator(img, face_frontal_cascade=None, face_profile_cascade=None):
     directory_haarfeatures = os.getcwd() + '\\res\\haarcascades\\'
     if face_frontal_cascade is None:
         face_frontal_cascade = cv2.CascadeClassifier(directory_haarfeatures + 'haarcascade_frontalface_default.xml')
@@ -277,7 +212,7 @@ def face_count_calculator(img, face_frontal_cascade=None, face_profile_cascade=N
     return len(rect_faces)
 
 
-def img_tilted_calculator(img):
+def _img_tilted_calculator(img):
     '''
     uses edge histogram to detect if camera perspective is tilted
     :param img:
@@ -292,7 +227,7 @@ def img_tilted_calculator(img):
     return tilted / sum(global_hist)
 
 
-def edge_hist_dir_calculator(img, only_strongest_dir=False, maintain_values=True):
+def _edge_hist_dir_calculator(img, only_strongest_dir=False, maintain_values=True):
     '''
     calculates edge histogram, sets
     :param img:
@@ -320,7 +255,7 @@ def edge_hist_dir_calculator(img, only_strongest_dir=False, maintain_values=True
     return hists_1D
 
 
-def face_bb_full_img_calculator(img, face_frontal_cascade, face_profile_cascade):
+def _face_bb_full_img_calculator(img, face_frontal_cascade, face_profile_cascade):
     """
     detects faces in image. returns biggest bounding box
 
@@ -335,6 +270,7 @@ def face_bb_full_img_calculator(img, face_frontal_cascade, face_profile_cascade)
     # cv2.destroyAllWindows()
     # DEBUG END
 
+    #rect_faces, rect_faces_frontal, rect_faces_profile = detect_faces(img)
     rect_faces, rect_faces_frontal, rect_faces_profile = detect_faces(img, face_frontal_cascade, face_profile_cascade)
     # sort list in descending order
     rect_faces.sort(key=lambda rect: rect.area(), reverse=True)
@@ -350,7 +286,7 @@ def face_bb_full_img_calculator(img, face_frontal_cascade, face_profile_cascade)
     return np.asarray(bbox)
 
 
-def face_bb_quarter_imgs_calculator(img, face_frontal_cascade, face_profile_cascade):
+def _face_bb_quarter_imgs_calculator(img, face_frontal_cascade, face_profile_cascade):
     """
     splits the image into 4 subimages. for each subimage it detects faces, chooses the face with biggest bounding box and stores bb (x,y,w,h) as feature
 
@@ -410,7 +346,7 @@ def face_bb_quarter_imgs_calculator(img, face_frontal_cascade, face_profile_casc
     return np.asarray(bboxes)
 
 
-def face_bb_eighth_imgs_calculator(img, face_frontal_cascade, face_profile_cascade):
+def _face_bb_eighth_imgs_calculator(img, face_frontal_cascade, face_profile_cascade):
     """
     splits the image into 8 subimages. for each subimage it detects faces, chooses the face with biggest bounding box and stores bb (x,y,w,h) as feature
 
