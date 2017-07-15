@@ -25,7 +25,7 @@ class Features(object):
     CNN_prob = 'cnn_prob'
 
     @staticmethod
-    def isTUFeature(feature_name):
+    def is_TU_feature(feature_name):
         if feature_name == Features.Face_count \
             or feature_name == Features.Rot_distance \
             or feature_name == Features.Face_bb \
@@ -37,6 +37,14 @@ class Features(object):
             or feature_name == Features.Edge_hist_v1 \
             or feature_name == Features.Edge_hist_v2 \
             or feature_name == Features.Symmetry:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def is_single_val_feature(features_name):
+        if features_name == Features.Face_count \
+            or features_name == Features.Rot_distance:
             return True
         else:
             return False

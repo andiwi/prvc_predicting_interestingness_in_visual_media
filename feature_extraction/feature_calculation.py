@@ -29,12 +29,13 @@ def calc_features(img_dirs, feature_names):
     model = FasterRCNNVGG16(pretrained_model='voc07')
 
     for img_dir in img_dirs:
+        print 'calc features for: ' + img_dir
         img = read_img(img_dir)
         features[img_dir] = dict() #init features dict for each image
 
         for name in feature_names:
             if name == Features.Face_count or name == Features.Rot_distance or name == Features.Face_bb:
-                face_count, rot_distance, face_bb = face_detection(img)
+                face_count, rot_distance, face_bb = face_detection(img, face_frontal_cascade, face_profile_cascade)
 
                 feature_files.save_features(img_dir, Features.Face_count, face_count)
                 feature_files.save_features(img_dir, Features.Rot_distance, rot_distance)

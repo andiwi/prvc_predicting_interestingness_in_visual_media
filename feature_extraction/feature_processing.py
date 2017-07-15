@@ -1,9 +1,7 @@
 import numpy as np
-import os
 from sklearn import preprocessing
 from Features import Features
 from helper import np_helper
-from file_handler.read_imgs import read_img_names
 
 
 def scale_features(features):
@@ -16,10 +14,14 @@ def scale_features(features):
     for img_dir in features:
         scaled_features[img_dir] = dict()
         for feature_name in features[img_dir]:
-            scaled_features[img_dir][feature_name] = preprocessing.scale(features[img_dir][feature_name])
+            if not Features.is_single_val_feature(feature_name):
+                scaled_features[img_dir][feature_name] = preprocessing.scale(features[img_dir][feature_name])
 
     return scaled_features
 
+def scale_feature_vec(feature_vec):
+    scaled_feature_vec = np.apply_along_axis(preprocessing.scale, 0, feature_vec)
+    return scaled_feature_vec
 
 def concat_features(features):
     """
@@ -106,22 +108,24 @@ def get_target_vec(img_dirs):
 
     return np.asarray(target_vec)
 
-def make_features_equal_column_size(features, feature_name):
+def make_face_bb_equal_col_size(features):
     """
     detects feature vector of image with the most columns and adds zeros to the other feature vectors so that all
     feature vectors have same amount of columns
     :param features: (dict) all features
-    :param feature_name: (string) the feature where vectors should be equalized
     :return: dict with equal all features where column number within a feature class is the same
     """
+    #find max face_bb vector
+    max_col_size = 0
     for img_dir in features:
-        max_col_size = 0
-        r, c = features[img_dir][feature_name].shape
+        c = features[img_dir][Features.Face_bb].shape[0]
         if c > max_col_size:
             max_col_size = c
 
+    #fill other vectors with zeros
     for img_dir in features:
-        r,c = features[img_dir][feature_name].shape
-        features[img_dir][feature_name] = np_helper.numpy_extend_cols_array_w_zeros(features[img_dir][feature_name], max_col_size - c)
+        c = features[img_dir][Features.Face_bb].shape[0]
 
+        zeros = np.zeros(max_col_size - c)
+        features[img_dir][Features.Face_bb] = np.concatenate((features[img_dir][Features.Face_bb], zeros))
     return features

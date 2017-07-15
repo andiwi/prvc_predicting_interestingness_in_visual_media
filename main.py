@@ -9,12 +9,11 @@ from sklearn.model_selection import cross_val_score, cross_val_predict
 import numpy as np
 import matplotlib.pyplot as plt
 
-import file_handler
 import preprocessing.preprocessing as prvc_preprocessing
-import postprocessing
-from feature_extraction import feature_calculation#, obj_recognition
-from feature_extraction.feature_processing import scale_features, concat_features, reshape_arrays_1D_to_2D, \
-    gen_final_feature_matrix, get_target_vec, make_features_equal_column_size
+from feature_extraction import feature_calculation
+from feature_extraction.feature_processing import scale_features, \
+    gen_final_feature_matrix, get_target_vec, make_face_bb_equal_col_size, \
+    scale_feature_vec
 from Features import Features
 from file_handler import feature_files
 from file_handler.read_gt_file import read_img_dirs_and_gt
@@ -25,10 +24,10 @@ from helper import box_filter
 def main():
     # the features which should be used.
     feature_names = [
-        #Features.Face_count,
+        Features.Face_count,
         #Features.Rot_distance,
-        #Features.Face_bb,
-        Features.Face_bb_full_img,
+        Features.Face_bb,
+        #Features.Face_bb_full_img,
         #Features.Face_bb_quarter_imgs,
         #Features.Face_bb_eighth_imgs,
         #Features.Tilted_edges,
@@ -46,7 +45,7 @@ def main():
         #Features.Lbp_L0,
         #Features.Lbp_L1,
         #Features.Lbp_L2,
-        Features.Gist,
+        #Features.Gist,
         #Features.CNN_fc7,
         #Features.CNN_prob
     ]
@@ -65,7 +64,7 @@ def main():
     img_dirs_test = read_img_dirs(dir_test_data)
 
     # preprocessing
-    if (do_preprocessing):
+    if do_preprocessing:
         prvc_preprocessing.preprocessing(img_dirs_training.keys())
         prvc_preprocessing.preprocessing(img_dirs_test)
         print 'preprocessing finished.'
@@ -73,27 +72,31 @@ def main():
     # calculate features
     if calc_features:
         features_train = feature_calculation.calc_features(img_dirs_training.keys(), feature_names)
-        features_test = feature_calculation.calc_features(img_dirs_test, feature_names)
+        #features_test = feature_calculation.calc_features(img_dirs_test, feature_names)
         print 'feature calculation finished.'
 
     else:
         # load features from files
         features_train = feature_files.load_features(img_dirs_training.keys(), feature_names)
-        features_test = feature_files.load_features(img_dirs_test, feature_names)
+        #features_test = feature_files.load_features(img_dirs_test, feature_names)
 
     # scale features (because svm is not scale invariant)
     features_train = scale_features(features_train)
-    features_test = scale_features(features_test)
+    #features_test = scale_features(features_test)
 
     if Features.Face_bb in feature_names:
        # bring bounding box feature matrices to same shape
        # find matrix with maximal columns and reshape other matrix before concatenating them
-       features_train = make_features_equal_column_size(features_train, Features.Face_bb)
-       features_test = make_features_equal_column_size(features_test, Features.Face_bb)
+       features_train = make_face_bb_equal_col_size(features_train)
+       #features_test = make_face_bb_equal_col_size(features_test)
 
     # generate final feature matrix
     X_train = gen_final_feature_matrix(features_train)
-    X_test = gen_final_feature_matrix(features_test)
+    #X_test = gen_final_feature_matrix(features_test)
+
+    #scale again
+    X_train = scale_feature_vec(X_train)
+    #X_test = scale_feature_vec(X_test)
 
     # get interestingness
     y_train = get_target_vec(img_dirs_training)
