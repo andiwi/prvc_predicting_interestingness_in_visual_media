@@ -95,7 +95,7 @@ def detect_faces(img, face_frontal_cascade, face_profile_cascade):
 
     return rect_faces_final, rect_faces_frontal, rect_faces_profile
 
-def face_detection(directory, face_frontal_cascade, face_profile_cascade): #TODO rename method to face_feature_calculation
+def face_detection(img, face_frontal_cascade, face_profile_cascade): #TODO rename method to face_feature_calculation
     '''
     detects faces with viola jones algorithm using frontal face and profileface haar features. 
     NOTE: returns unscaled feature vectors (numpy arrays)
@@ -104,50 +104,36 @@ def face_detection(directory, face_frontal_cascade, face_profile_cascade): #TODO
              rule_of_thirds_distance_np ...distance of biggest face center to nearest rule of thirds grid corner
              imgs_feature_matrix        ...face bounding boxes x,y,w,h, x,y,w,h,...
     '''
-    imgNames = read_img_names(directory)
+    face_count = 0 #number of faces per img
+    rule_of_thirds_distance = 0 #smallest euclidean distance between center of biggest face to rule of thirds corner
 
+    rect_faces, rect_faces_frontal, rect_faces_profile = detect_faces(img, face_frontal_cascade, face_profile_cascade)
 
-    face_count = [] #number of faces per img
-    rule_of_thirds_distance = [] #smallest euclidean distance between center of biggest face to rule of thirds corner
-    imgs_feature_matrix = []
+    #sort list in descending order
+    rect_faces.sort(key=lambda rect: rect.area(), reverse=True)
 
-    for imgName in imgNames:
-        img = read_img(os.path.join(directory, imgName))
+    #append faces to feature matrix
+    #convert rect list to list with entries x,y,w,h entries
+    faces_bb = []
+    first_rect = True
+    for rect in rect_faces:
+        faces_bb.append(rect.x)
+        faces_bb.append(rect.y)
+        faces_bb.append(rect.w)
+        faces_bb.append(rect.h)
 
-        rect_faces, rect_faces_frontal, rect_faces_profile = detect_faces(img, face_frontal_cascade, face_profile_cascade)
+        if(first_rect):
+            first_rect = False
+            rule_of_thirds_distance = distance_to_grid_corner(img, np.array([rect.x+rect.w/2, rect.y+rect.h/2]))
 
-        #sort list in descending order
-        rect_faces.sort(key=lambda rect: rect.area(), reverse=True)
+    if len(rect_faces) == 0:
+        #insert empty face bb
+        faces_bb.append(0)
+        faces_bb.append(0)
+        faces_bb.append(0)
+        faces_bb.append(0)
 
-        #append faces to feature matrix
-        #convert rect list to list with entries x,y,w,h entries
-        faces = []
-        first_rect = True
-        for rect in rect_faces:
-            faces.insert(len(faces), rect.x)
-            faces.insert(len(faces), rect.y)
-            faces.insert(len(faces), rect.w)
-            faces.insert(len(faces), rect.h)
+    face_count = len(rect_faces)
 
-            if(first_rect):
-                first_rect = False
-                rule_of_thirds_distance.append(distance_to_grid_corner(img, np.array([rect.x+rect.w/2, rect.y+rect.h/2])))
-
-        if(len(rect_faces) == 0):
-            rule_of_thirds_distance.append(0)
-
-        imgs_feature_matrix.append(faces)
-        face_count.append(len(rect_faces))
-
-    imgs_feature_matrix_np = np.asarray(imgs_feature_matrix)
-    #fill cells in numpy array with zeros
-    imgs_feature_matrix_np = numpy_fillwithzeros(imgs_feature_matrix_np)
-
-    face_count_np = np.asarray(face_count)
-    rule_of_thirds_distance_np = np.asarray(rule_of_thirds_distance)
-
-    #imgs_feature_matrix_np = np.c_[rule_of_thirds_distance_np, imgs_feature_matrix_np]
-    #imgs_feature_matrix_np = np.c_[face_count_np, imgs_feature_matrix_np]
-
-    return face_count_np, rule_of_thirds_distance_np, imgs_feature_matrix_np
+    return face_count, rule_of_thirds_distance, np.asarray(faces_bb)
 
