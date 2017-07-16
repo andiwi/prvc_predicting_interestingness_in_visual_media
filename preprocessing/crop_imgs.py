@@ -8,10 +8,11 @@ from file_handler.read_imgs import read_img_names, read_img
 
 def crop_black_borders(img_dirs):
     """
-    TODO good description
-    crops black borders around image. and replaces imgages with cropped ones
-    :param img_dirs: list of image paths
-    :return: 
+    crops black borders around image. replaces image with the modified image.
+    :param img_dirs: a list containing all image paths
+    :type img_dirs: list
+    :return:
+    :rtype:
     """
     for img_dir in img_dirs:
         img = read_img(img_dir)
@@ -86,9 +87,12 @@ def crop_black_borders(img_dirs):
 
 def find_horizontal_img_border(img_binary):
     """
-    :param img_binary: a binary image where real scene content is white and all unimportant content black (which should be cropped) 
+    :param img_binary: a binary image where real scene content is white and all unimportant content black (which should be cropped)
+    :type img_binary: cv2.image
     :return: row_idx_top, row_idx_bottom where real scene starts, ends
+    :rtype: int, int
     """
+
     height, width = img_binary.shape
     # check for horizontal lines
     #from top to bottom
@@ -125,8 +129,10 @@ def find_horizontal_img_border(img_binary):
 
 def find_vertical_img_border(img_binary):
     """
-    :param img_binary: a binary image where real scene content is white and all unimportant content black (which should be cropped) 
+    :param img_binary: a binary image where real scene content is white and all unimportant content black (which should be cropped)
+    :type img_binary: cv2.image
     :return: col_idx_left, col_idx_right where real scene starts, ends
+    :rtype: int, int
     """
     height, width = img_binary.shape
     # check for vertical lines

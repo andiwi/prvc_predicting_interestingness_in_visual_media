@@ -44,7 +44,8 @@ class Features(object):
     @staticmethod
     def is_single_val_feature(features_name):
         if features_name == Features.Face_count \
-            or features_name == Features.Rot_distance:
+            or features_name == Features.Rot_distance \
+            or features_name == Features.Tilted_edges:
             return True
         else:
             return False

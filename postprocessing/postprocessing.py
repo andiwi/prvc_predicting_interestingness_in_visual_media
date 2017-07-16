@@ -1,15 +1,30 @@
-from file_handler.file_search import get_abs_path_of_file
+import numpy as np
+import platform
 
 
-def gen_submission_format(keyframe_name, int_levels):
+def gen_submission_format(results):
     """
     reformats results for final submission
-    :param img_names:
-    :param int_levels:
-    :return: np.array videoname,keyframe-name,[classification decision: 1(interesting) or 0(not interesting)],[confidence value/interestingness level/rank]
+    :param results: the results. for each image path it contains the probability of class 'uninteresting'
+    :type results: dict
+    :return: videoname,keyframe-name,[classification decision: 1(interesting) or 0(not interesting)],[confidence value/interestingness level/rank]
+    :rtype: np.array
     """
 
-    for i in range(0, len(keyframe_name)):
-        #find video names
-        path = get_abs_path_of_file(keyframe_name[i])
+    submission_format = []
+    for img_dir in results:
+        if platform.system() == 'Linux':
+            raise NotImplementedError
+        else: #windows
+            videoname = img_dir[img_dir.find('videos')+7:img_dir.find('images')-1]
+            shotname = img_dir[img_dir.rfind('\\')+1:]
+            classification = results[img_dir]['classification']
+            if classification == 0:
+                confidence = results[img_dir]['probability']
+            else:
+                confidence = 1-results[img_dir]['probability']
+
+            submission_format.append('{},{},{},{}'.format(videoname, shotname, classification, confidence))
+
+    return np.asarray(submission_format)
 

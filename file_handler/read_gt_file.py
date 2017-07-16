@@ -1,10 +1,13 @@
 import os
 
+
 def read_img_dirs_and_gt(dir):
     """
-    read all image names and interestingness level from ground truth file
+    read all image paths and interestingness level from ground truth file
     :param dir: root directory of dataset e.x. './InterestingnessData16/devset/' or './InterestingnessData16/testset/'
-    :return: dict(img_path, gt)
+    :type dir: str
+    :return: (img_path, gt)
+    :rtype: dict
     """
     gt_path = os.path.join(dir, 'annotations', 'devset-image.txt')
 

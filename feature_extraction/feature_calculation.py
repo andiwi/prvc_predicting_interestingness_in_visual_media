@@ -14,12 +14,16 @@ from file_handler import feature_files
 
 
 def calc_features(img_dirs, feature_names):
-    '''
+    """
     calculates all features given by feature_names
-    :param (String) dir: directory containing subdirectories 'interesting' and 'uninteresting' which contain images
-    :param (list) feature_names: list of feature names which should be calculated
-    :return: (dict) {feature_name: [features_interesting, features_uninteresting]}
-    '''
+    :param img_dirs: a list of image paths
+    :type img_dirs: list
+    :param feature_names: a list containing all feature names
+    :type feature_names: list
+    :return: dict (img_dir, features) features is also a dict (feature_name, feature vector)
+    :rtype: dict
+    """
+
     features = {}
 
     dir_haarfeatures = os.path.join(os.getcwd(), 'res', 'haarcascades')

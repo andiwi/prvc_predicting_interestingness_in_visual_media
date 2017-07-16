@@ -1,4 +1,5 @@
 import os
+import platform
 import numpy as np
 import gzip
 from Features import Features
@@ -7,21 +8,29 @@ from feature_extraction.load_precalc_features import load_precalc_feature
 
 def save_features(img_dir, feature_name, feature):
     """
-    save features of img in .txt file (compressed in gzip format)
-    :param img_dir: (string) path of the image
-    :param feature_name: (string) name of the features (should be one of Features enumeration)
-    :param feature: (numpy array) the features
+    saves features of image in .txt file (compressed in gzip format)
+    :param img_dir: path of the image
+    :type img_dir: str
+    :param feature_name: name of the feature (should be one of Features enum)
+    :type feature_name: str
+    :param feature: the feature vector
+    :type feature: np.array
     :return:
+    :rtype:
     """
 
     #create feature file path
-    feature_file_path = os.path.join(img_dir[:img_dir.find('/videos/')], 'features', 'Features_From_TUWien', 'Image_Subtask', feature_name, img_dir[img_dir.find('/videos/')+8:] + '.txt.gz')
-    dirs = feature_file_path[:feature_file_path.rfind('/')]
+    feature_file_path = os.path.join(img_dir[:img_dir.find('videos')], 'features', 'Features_From_TUWien', 'Image_Subtask', feature_name, img_dir[img_dir.find('videos')+7:] + '.txt.gz')
+
+    if platform.system() == 'Linux':
+        dirs = feature_file_path[:feature_file_path.rfind('/')] #Linux system
+    else:
+        dirs = feature_file_path[:feature_file_path.rfind('\\')] #windows system
+
     if not os.path.exists(dirs):
         os.makedirs(dirs)
 
-    if feature_name == Features.Face_count \
-        or feature_name == Features.Rot_distance:
+    if Features.is_single_val_feature(feature_name):
         #feature is a single value
         with gzip.open(feature_file_path, "w") as f:
             f.write(str(feature))
@@ -31,10 +40,14 @@ def save_features(img_dir, feature_name, feature):
 def load_features(img_dirs, feature_names):
     """
     loads features from file
-    :param dir:
-    :param feature_names:
-    :return:
+    :param img_dirs: a list of image paths
+    :type img_dirs: list
+    :param feature_names: a list of feature names
+    :type feature_names: list
+    :return: dict (img_dir, features) features is also a dict (feature_name, feature vector)
+    :rtype: dict
     """
+
     features = {}
 
     for img_dir in img_dirs:
@@ -49,8 +62,8 @@ def load_features(img_dirs, feature_names):
     return features
 
 def _load_TU_feature(img_dir, feature_name):
-    feature_file_path = os.path.join(img_dir[:img_dir.find('/videos/')], 'features', 'Features_From_TUWien',
+    feature_file_path = os.path.join(img_dir[:img_dir.find('videos')], 'features', 'Features_From_TUWien',
                                      'Image_Subtask', feature_name,
-                                     img_dir[img_dir.find('/videos/') + 8:] + '.txt.gz')
+                                     img_dir[img_dir.find('videos') + 7:] + '.txt.gz')
     feature = np.loadtxt(feature_file_path)
     return feature
