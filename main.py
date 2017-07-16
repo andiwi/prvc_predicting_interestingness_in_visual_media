@@ -32,7 +32,7 @@ def main():
         # Features.Face_bb_quarter_imgs,
         # Features.Face_bb_eighth_imgs,
         # Features.Tilted_edges,
-        Features.Edge_hist_v0,
+        # Features.Edge_hist_v0,
         # Features.Edge_hist_v1,
         # Features.Edge_hist_v2,
         Features.Symmetry,
