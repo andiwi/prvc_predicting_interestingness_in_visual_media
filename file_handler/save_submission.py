@@ -1,4 +1,4 @@
 import numpy as np
 
-def save_submission(submission_format):
-    np.savetxt('me17in_groupname_image_1.txt', submission_format, delimiter=',', fmt='%s')
+def save_submission(submission_format, runname):
+    np.savetxt('me17in_groupname_image_{}.txt'.format(runname), submission_format, delimiter=',', fmt='%s')

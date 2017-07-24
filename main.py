@@ -27,7 +27,7 @@ def main():
     # the features which should be used.
     feature_names = [
         # Features.Face_count,
-         Features.Rot_distance,
+        # Features.Rot_distance,
         # Features.Face_bb,
         # Features.Face_bb_full_img,
         # Features.Face_bb_quarter_imgs,
@@ -48,18 +48,19 @@ def main():
         # Features.Lbp_L1,
         # Features.Lbp_L2,
         # Features.Gist,
-        # Features.CNN_fc7,
+        Features.CNN_fc7,
         # Features.CNN_prob
     ]
 
+    runname = 1
     do_preprocessing = False  # use this only at your first run on the dataset
     calc_features = False  # calculates the selected features
-    use_second_dev_classification_method = True # True: classifies with second order deviation method
+    use_second_dev_classification_method = False # True: classifies with second order deviation method
 
     global dir_root # the root directory of your data
-    # dir_root = '/home/andreas/Desktop/InterestingnessData16_small'
+    dir_root = '/home/andreas/Desktop/InterestingnessData16'
     # dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016_small'
-    dir_root = 'C:\Users\jutta\Desktop\InterestingnessData16'
+    # dir_root = 'C:\Users\jutta\Desktop\InterestingnessData16'
     # root directories for training and test data
     dir_training_data = os.path.join(dir_root, 'devset')
     dir_test_data = os.path.join(dir_root, 'testset')
@@ -175,7 +176,7 @@ def main():
             results[img_dir]['classification'] = 0
 
     submission_format = gen_submission_format(results)
-    save_submission.save_submission(submission_format)
+    save_submission.save_submission(submission_format, runname)
 
 
     """
