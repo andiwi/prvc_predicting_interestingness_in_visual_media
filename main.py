@@ -15,7 +15,7 @@ from postprocessing.postprocessing import gen_submission_format
 import preprocessing.preprocessing as prvc_preprocessing
 from feature_extraction import feature_calculation
 from feature_extraction.feature_processing import scale_features, \
-    gen_final_feature_matrix, get_target_vec, make_face_bb_equal_col_size
+    gen_final_feature_matrix, get_target_vec, make_face_bb_equal_col_size, make_face_bb_train_test_equal_col_size
 from Features import Features
 from file_handler import feature_files, save_submission
 from file_handler.read_gt_file import read_img_dirs_and_gt
@@ -28,7 +28,7 @@ def main():
     feature_names = [
         # Features.Face_count,
         # Features.Rot_distance,
-        # Features.Face_bb,
+         Features.Face_bb,
         # Features.Face_bb_full_img,
         # Features.Face_bb_quarter_imgs,
         # Features.Face_bb_eighth_imgs,
@@ -48,19 +48,19 @@ def main():
         # Features.Lbp_L1,
         # Features.Lbp_L2,
         # Features.Gist,
-        Features.CNN_fc7,
+        # Features.CNN_fc7,
         # Features.CNN_prob
     ]
 
-    runname = 1
+    runname = 2
     do_preprocessing = False  # use this only at your first run on the dataset
     calc_features = False  # calculates the selected features
     use_second_dev_classification_method = False # True: classifies with second order deviation method
 
     global dir_root # the root directory of your data
-    dir_root = '/home/andreas/Desktop/InterestingnessData16'
+    #dir_root = '/home/andreas/Desktop/InterestingnessData16'
     # dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016_small'
-    # dir_root = 'C:\Users\jutta\Desktop\InterestingnessData16'
+    dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016'
     # root directories for training and test data
     dir_training_data = os.path.join(dir_root, 'devset')
     dir_test_data = os.path.join(dir_root, 'testset')
@@ -95,7 +95,7 @@ def main():
         # find matrix with maximal columns and reshape other matrix before concatenating them
         features_train = make_face_bb_equal_col_size(features_train)
         features_test = make_face_bb_equal_col_size(features_test)
-        # TODO make train and test equal col size
+        features_train, features_test = make_face_bb_train_test_equal_col_size(features_train, features_test)
 
     # generate final feature matrix
     X_train = gen_final_feature_matrix(features_train)
@@ -120,7 +120,7 @@ def main():
     # classify test set
     y_probas = svc.predict_proba(X_test)
 
-    # reassign probabilities to images #TODO bitte noch einmal checken ob das stimmt
+    # reassign probabilities to images
     counter = 0
     results = dict()
     for img_dir in features_test.keys():
@@ -182,60 +182,6 @@ def main():
     """
     scores = cross_val_score(svc, X, y, cv=10, scoring='average_precision')
     predictions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
-
-    # classic version
-    avg_precision_score_v1 = sklearn.metrics.average_precision_score(y, predictions[:, 1])
-
-    probability = predictions[:, 1]
-    x_vals = np.asarray(range(0, len(probability)))
-
-    # sort probability
-    probability = np.sort(probability)
-
-    # smooth curve with averaging window
-    proba_smooth = box_filter.smooth(probability, 3)
-
-    # calc second order derivative
-    diff_2nd = np.diff(proba_smooth, 2)
-
-    # find first point above threshold
-    thresh = 0.01
-    limitIdx = None  # This position corresponds to the limit between non interesting and interesting shots/key-frames.
-    for i in range(len(diff_2nd)):
-        if diff_2nd[i] > thresh:
-            limitIdx = i
-            break
-
-    if limitIdx is None:
-        limitIdx = i
-
-    # DEBUG
-    plt.plot(x_vals, probability, 'o')
-    plt.plot(x_vals, proba_smooth, 'r-', lw=2)
-    plt.plot(x_vals[limitIdx], proba_smooth[limitIdx], 'go')
-    plt.show()
-    # DEBUG END
-
-    y_pred = probability > proba_smooth[limitIdx]
-
-    # calc new interestingness probability according to limit point
-    proba_unint = probability[np.invert(y_pred)]
-    proba_int = probability[y_pred]
-
-    # normalize uninteresting in range 0 - 0.5
-    proba_unint_scaled = sklearn.preprocessing.minmax_scale(proba_unint, feature_range=(0, 0.5))
-    # normalize interesting in range 0.5-1
-    proba_int_scaled = sklearn.preprocessing.minmax_scale(proba_int, feature_range=(0.5, 1))
-
-    # set interesting and non interesting according to limitPoint
-    y_proba = np.concatenate((proba_int_scaled, proba_unint_scaled), axis=0)
-    avg_precision_score_v2 = sklearn.metrics.average_precision_score(y, y_proba)
-
-    # DEBUG
-    # y = [1,1,0,0]
-    # y_proba = [0.9, 0.8, 0.4, 0.2]
-    # avg_precision_score = sklearn.metrics.average_precision_score(y, y_proba)
-    # DEBUG END
 
     # find border between interesting and uninteresting
 
