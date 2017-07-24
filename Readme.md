@@ -9,7 +9,9 @@ You need miniconda to install the application [https://conda.io/miniconda.html](
 To deploy: 
 ```python 
 $ conda env create
-$ source activate prvc
+$ source activate prvc (for linux, OSX)
+or
+$ activate prcv (for windows)
 ```
 
 To start the application:
@@ -22,5 +24,5 @@ python main.py
 To install ChainerCV you may have to do the following steps on windows:
 
 1, Download Visual C++ for Python from https://www.microsoft.com/download/details.aspx?id=44266
-2, My installation path is 'C:\Users\lucker\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0'
+2, My installation path is 'C:\Users\username\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\include'
 3, Copy stdint.h to installation path. (download it from: https://github.com/mattn/gntp-send/blob/master/include/msinttypes/stdint.h)

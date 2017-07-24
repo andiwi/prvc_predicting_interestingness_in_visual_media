@@ -4,6 +4,7 @@ import numpy as np
 
 from face_detection import detect_faces
 from feature_extraction.load_precalc_features import load_precalc_feature
+from file_handler.feature_files import TU_feature_file_exists
 from file_handler.read_imgs import read_img
 from mpeg7_edge_histogram import calc_edge_histogram
 from face_detection import face_detection
@@ -38,6 +39,9 @@ def calc_features(img_dirs, feature_names):
         features[img_dir] = dict() #init features dict for each image
 
         for name in feature_names:
+            if TU_feature_file_exists(img_dir, name):
+                continue
+
             if name == Features.Face_count or name == Features.Rot_distance or name == Features.Face_bb:
                 face_count, rot_distance, face_bb = face_detection(img, face_frontal_cascade, face_profile_cascade)
 

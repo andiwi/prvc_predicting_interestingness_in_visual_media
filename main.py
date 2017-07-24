@@ -1,6 +1,7 @@
 import os
 
 import random
+from warnings import warn
 
 import sklearn
 from sklearn import svm
@@ -26,7 +27,7 @@ def main():
     # the features which should be used.
     feature_names = [
         # Features.Face_count,
-        # Features.Rot_distance,
+         Features.Rot_distance,
         # Features.Face_bb,
         # Features.Face_bb_full_img,
         # Features.Face_bb_quarter_imgs,
@@ -35,7 +36,7 @@ def main():
         # Features.Edge_hist_v0,
         # Features.Edge_hist_v1,
         # Features.Edge_hist_v2,
-        Features.Symmetry,
+        # Features.Symmetry,
         # Features.Hsv_hist,
         # Features.DenseSIFT_L0,
         # Features.DenseSIFT_L1,
@@ -51,14 +52,14 @@ def main():
         # Features.CNN_prob
     ]
 
-    do_preprocessing = True  # use this only at your first run on the dataset
-    calc_features = True  # calculates the selected features
-    use_second_dev_classification_method = False # True: classifies with second order deviation method
+    do_preprocessing = False  # use this only at your first run on the dataset
+    calc_features = False  # calculates the selected features
+    use_second_dev_classification_method = True # True: classifies with second order deviation method
 
     global dir_root # the root directory of your data
     # dir_root = '/home/andreas/Desktop/InterestingnessData16_small'
     # dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016_small'
-    dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016'
+    dir_root = 'C:\Users\jutta\Desktop\InterestingnessData16'
     # root directories for training and test data
     dir_training_data = os.path.join(dir_root, 'devset')
     dir_test_data = os.path.join(dir_root, 'testset')
@@ -80,7 +81,7 @@ def main():
         print 'feature calculation finished.'
 
     else:
-        # load features from files
+        # load features from file
         features_train = feature_files.load_features(img_dirs_training.keys(), feature_names)
         features_test = feature_files.load_features(img_dirs_test, feature_names)
 
@@ -123,22 +124,61 @@ def main():
     results = dict()
     for img_dir in features_test.keys():
         results[img_dir] = dict()
-        results[img_dir]['probability'] = y_probas[counter][0]
+        results[img_dir]['probability'] = y_probas[counter][1]
         counter = counter + 1
+
 
     # calc final classification
     if use_second_dev_classification_method:
-        raise NotImplementedError
+        #raise NotImplementedError
+
+        probability = y_probas[:, 1]
+        x_vals = np.asarray(range(0, len(probability)))
+
+        # sort probability
+        probability = np.sort(probability)
+
+        # smooth curve with averaging window
+        proba_smooth = box_filter.smooth(probability, 3)
+
+        # calc second order derivative
+        diff_2nd = np.diff(proba_smooth, 2)
+
+        # find first point above threshold
+        thresh = 0.01
+        limitIdx = None  # This position corresponds to the limit between non interesting and interesting shots/key-frames.
+        for i in range(len(diff_2nd)):
+            if diff_2nd[i] > thresh:
+                limitIdx = i
+                break
+
+        if limitIdx is None:
+            limitIdx = i
+
+        # DEBUG
+        plt.plot(x_vals, probability, 'o')
+        plt.plot(x_vals, proba_smooth, 'r-', lw=2)
+        plt.plot(x_vals[limitIdx], proba_smooth[limitIdx], 'go')
+        plt.show()
+        # DEBUG END
+
+        limitProba = proba_smooth[limitIdx]
+
     else:
-        for img_dir in results:
-            if results[img_dir]['probability'] > 0.5:
-                results[img_dir]['classification'] = 0
-            else:
-                results[img_dir]['classification'] = 1
+        limitProba = 0.5
+
+
+    for img_dir in results:
+        if results[img_dir]['probability'] > limitProba:
+            results[img_dir]['classification'] = 1
+        else:
+            results[img_dir]['classification'] = 0
 
     submission_format = gen_submission_format(results)
     save_submission.save_submission(submission_format)
 
+
+    """
     scores = cross_val_score(svc, X, y, cv=10, scoring='average_precision')
     predictions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
 
@@ -201,7 +241,8 @@ def main():
     print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print("Mean Average Precision - Version 1: %0.2f" % avg_precision_score_v1)
     print("Mean Average Precision - Version 2: %0.2f" % avg_precision_score_v2)
+    
+    """
     print("finished.")
-
 
 if __name__ == '__main__': main()

@@ -1,5 +1,7 @@
 import os
 import platform
+from warnings import warn
+
 import numpy as np
 import gzip
 from Features import Features
@@ -55,6 +57,11 @@ def load_features(img_dirs, feature_names):
         for feature_name in feature_names:
             if Features.is_TU_feature(feature_name):
                 feature = _load_TU_feature(img_dir, feature_name)
+
+                if feature is None:
+                    #replace with zeros of correct vector size
+                    feature = np.zeros(features[img_dirs[0]][feature_name].shape)
+
             else:
                 feature = load_precalc_feature(img_dir, feature_name)
 
@@ -65,5 +72,26 @@ def _load_TU_feature(img_dir, feature_name):
     feature_file_path = os.path.join(img_dir[:img_dir.find('videos')], 'features', 'Features_From_TUWien',
                                      'Image_Subtask', feature_name,
                                      img_dir[img_dir.find('videos') + 7:] + '.txt.gz')
-    feature = np.loadtxt(feature_file_path)
-    return feature
+
+    if os.path.isfile(feature_file_path):
+        return np.loadtxt(feature_file_path)
+    else:
+        warn('File does not exist. You have to calculate the features before loading it. {}'.format(feature_file_path))
+        return None
+
+def TU_feature_file_exists(img_dir, feature_name):
+    """
+    checks if a feature file for image and given feature already exists
+    :param img_dir: image path
+    :type img_dir: String
+    :param feature_name: feature name
+    :type feature_name: Features
+    :return: True or False
+    """
+    feature_file_path = os.path.join(img_dir[:img_dir.find('videos')], 'features', 'Features_From_TUWien',
+                                     'Image_Subtask', feature_name, img_dir[img_dir.find('videos') + 7:] + '.txt.gz')
+
+    if os.path.isfile(feature_file_path):
+        return True
+    else:
+        return False
