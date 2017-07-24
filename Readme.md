@@ -14,6 +14,7 @@ or
 $ activate prcv (for windows)
 ```
 
+#Run the application
 To start the application:
  
 ```python
@@ -21,14 +22,28 @@ python main.py
 ```
 
 in the main.py you have 5 parameters to set
+* ```feature_names``` ...select (uncomment) the feature names which should be used
 * ```runname``` ... 1,2,3
 * ```do_preprocessing``` ...True or False; set to True only at your first run on the dataset
 * ```calc_features``` ...True or False; calculates the selected features (skips calculation if file for image and feature already exists)
 * ```use_second_dev_classification_method``` ...True or False; classifies with second order deviation method
 
 
-To evaluate the results trec_eval tool is used. Instructions can be found at https://github.com/multimediaeval/2017-Predicting-Media-Interestingness-Task/wiki/Evaluation
+A result file is saved in the root directory.
 
+## Evaluation
+The trec_eval tool is used for evaluation.
+Instructions can be found at https://github.com/multimediaeval/2017-Predicting-Media-Interestingness-Task/wiki/Evaluation
+
+Convert it for the trec_eval tool:
+```python
+python results_to_trec.py me17in_groupname_image_runname.txt
+```
+
+Run evaluation:
+```python
+./trec_eval -M10 ./data/testset-image.qrels ./data/me17in_groupname_image_runname.txt.trec
+```
 
 ## Chainer CV install problem
 To install ChainerCV you may have to do the following steps on windows:
