@@ -1,3 +1,6 @@
+import platform
+from collections import OrderedDict
+
 import cv2
 import os
 import glob
@@ -41,4 +44,22 @@ def read_img_dirs(dir):
         for file_path in glob.glob(os.path.join(root, '*.jpg')):
             img_dirs.append(file_path)
 
+    img_dirs.sort(key=_get_img_dirs_key)
     return img_dirs
+
+def _get_img_dirs_key(img_dir):
+    if platform.system() == 'Linux':
+        videonumber = int(img_dir[img_dir.find('videos') + 13:img_dir.find('images') - 1])
+        shotname = img_dir[img_dir.rfind('/') + 1:]
+
+    else:  # windows
+        videonumber = int(img_dir[img_dir.find('videos') + 13:img_dir.find('images') - 1])
+        shotname = img_dir[img_dir.rfind('\\') + 1:]
+
+    shotnum1 = int(shotname[:shotname.find('_')])
+    shotnum2 = int(shotname[shotname.find('_')+1:shotname.find('-')])
+    shotnum3 = int(shotname[shotname.find('-')+1:shotname.find('.jpg')])
+
+    return (videonumber, shotnum1, shotnum2, shotnum3)
+
+
