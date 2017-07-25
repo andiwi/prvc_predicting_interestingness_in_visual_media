@@ -1,6 +1,8 @@
 import shutil
 import csv
 import os
+from collections import OrderedDict
+
 
 def filecopy():
     '''
@@ -15,8 +17,8 @@ def filecopy():
     f = open(csvPath)
     csv_f = csv.reader(f)
 
-    imgs_interesting = dict()
-    imgs_uninteresting = dict()
+    imgs_interesting = OrderedDict()
+    imgs_uninteresting = OrderedDict()
 
     for row in csv_f:
         if row[2] == '1':

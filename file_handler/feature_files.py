@@ -1,5 +1,6 @@
 import os
 import platform
+from collections import OrderedDict
 from warnings import warn
 
 import numpy as np
@@ -50,10 +51,10 @@ def load_features(img_dirs, feature_names):
     :rtype: dict
     """
 
-    features = {}
+    features = OrderedDict()
 
     for img_dir in img_dirs:
-        features[img_dir] = dict()
+        features[img_dir] = OrderedDict()
         for feature_name in feature_names:
             if Features.is_TU_feature(feature_name):
                 feature = _load_TU_feature(img_dir, feature_name)

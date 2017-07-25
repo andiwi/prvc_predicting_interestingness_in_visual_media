@@ -1,4 +1,5 @@
 import os
+from collections import OrderedDict
 
 
 def read_img_dirs_and_gt(dir):
@@ -17,7 +18,7 @@ def read_img_dirs_and_gt(dir):
         gt_content = [x.strip() for x in gt_content]  # remove whitespace characters like `\n` at the end of each line
         gt_content = [x.split(',') for x in gt_content]  # split by delimiter ','
 
-    img_dirs_gt = dict()
+    img_dirs_gt = OrderedDict()
 
     for row in gt_content:
         img_dir = os.path.join(dir, 'videos', row[0], 'images', row[1])

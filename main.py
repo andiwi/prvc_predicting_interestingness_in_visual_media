@@ -1,6 +1,7 @@
 import os
 
 import random
+from collections import OrderedDict
 from warnings import warn
 
 import sklearn
@@ -27,8 +28,8 @@ def main():
     # the features which should be used.
     feature_names = [
         # Features.Face_count,
-        # Features.Rot_distance,
-         Features.Face_bb,
+         Features.Rot_distance,
+        # Features.Face_bb,
         # Features.Face_bb_full_img,
         # Features.Face_bb_quarter_imgs,
         # Features.Face_bb_eighth_imgs,
@@ -52,15 +53,17 @@ def main():
         # Features.CNN_prob
     ]
 
-    runname = 2
+    runname = 1
     do_preprocessing = False  # use this only at your first run on the dataset
     calc_features = False  # calculates the selected features
-    use_second_dev_classification_method = False # True: classifies with second order deviation method
-
+    use_second_dev_classification_method = True # True: classifies with second order deviation method
     global dir_root # the root directory of your data
-    #dir_root = '/home/andreas/Desktop/InterestingnessData16'
-    # dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016_small'
     dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016'
+
+#######################
+###STOP EDITING HERE###
+#######################
+
     # root directories for training and test data
     dir_training_data = os.path.join(dir_root, 'devset')
     dir_test_data = os.path.join(dir_root, 'testset')
@@ -122,9 +125,9 @@ def main():
 
     # reassign probabilities to images
     counter = 0
-    results = dict()
+    results = OrderedDict()
     for img_dir in features_test.keys():
-        results[img_dir] = dict()
+        results[img_dir] = OrderedDict()
         results[img_dir]['probability'] = y_probas[counter][1]
         counter = counter + 1
 
@@ -146,7 +149,7 @@ def main():
         diff_2nd = np.diff(proba_smooth, 2)
 
         # find first point above threshold
-        thresh = 0.01
+        thresh = 0.005
         limitIdx = None  # This position corresponds to the limit between non interesting and interesting shots/key-frames.
         for i in range(len(diff_2nd)):
             if diff_2nd[i] > thresh:

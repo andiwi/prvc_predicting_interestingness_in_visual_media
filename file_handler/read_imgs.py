@@ -4,7 +4,7 @@ import glob
 
 
 def read_imgs(directory):
-    imgs = dict()
+    imgs = OrderedDict()
     for file in os.listdir(directory):
         if file.endswith(".jpg"):
             img = cv2.imread(os.path.join(directory, file))

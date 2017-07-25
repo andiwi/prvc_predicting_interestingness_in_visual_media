@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 from sklearn import preprocessing
 from Features import Features
@@ -13,7 +15,7 @@ def scale_features(features):
     :rtype: dict
     """
 
-    scaled_features = {}
+    scaled_features = OrderedDict()
     for img_dir in features:
         scaled_features[img_dir] = dict()
         for feature_name in features[img_dir]:
@@ -43,7 +45,7 @@ def concat_features(features):
     :param features:
     :return: concatenated features
     """
-    concated_features = {}
+    concated_features = OrderedDict()
 
     for img_dir in features:
         concated_features[img_dir] = dict()

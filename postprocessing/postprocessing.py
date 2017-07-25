@@ -31,4 +31,3 @@ def gen_submission_format(results):
             submission_format.append('{},{},{},{}'.format(videoname, shotname, classification, confidence))
 
     return np.asarray(submission_format)
-
