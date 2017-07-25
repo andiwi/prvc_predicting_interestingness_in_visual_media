@@ -35,8 +35,9 @@ in the main.py you have 5 parameters to set
 * ```calc_features``` ...True or False; calculates the selected features (skips calculation if file for image and feature already exists)
 * ```use_second_dev_classification_method``` ...True or False; classifies with second order deviation method
 
+features are stored in a subdirectory './devset|testset/Features_From_TUWien'
 
-A result file is saved in the root directory.
+A result file (ready for submission) is stored in the root directory.
 
 ## Evaluation
 The trec_eval tool is used for evaluation.
