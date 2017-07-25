@@ -10,7 +10,10 @@ def read_img_dirs_and_gt(dir):
     :return: (img_path, gt)
     :rtype: dict
     """
-    gt_path = os.path.join(dir, 'annotations', 'devset-image.txt')
+    if 'devset' in dir:
+        gt_path = os.path.join(dir, 'annotations', 'devset-image.txt')
+    else:
+        gt_path = os.path.join(dir, 'annotations', 'testset-image.txt')
 
     # read ground truth file
     with open(gt_path) as f:
@@ -22,7 +25,7 @@ def read_img_dirs_and_gt(dir):
 
     for row in gt_content:
         img_dir = os.path.join(dir, 'videos', row[0], 'images', row[1])
-        img_gt = row[2]
+        img_gt = int(row[2])
 
         img_dirs_gt[img_dir] = img_gt
 
