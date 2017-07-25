@@ -28,7 +28,7 @@ def main():
     # the features which should be used.
     feature_names = [
         # Features.Face_count,
-         Features.Rot_distance,
+        # Features.Rot_distance,
         # Features.Face_bb,
         # Features.Face_bb_full_img,
         # Features.Face_bb_quarter_imgs,
@@ -49,14 +49,14 @@ def main():
         # Features.Lbp_L1,
         # Features.Lbp_L2,
         # Features.Gist,
-        # Features.CNN_fc7,
+        Features.CNN_fc7,
         # Features.CNN_prob
     ]
 
     runname = 1
     do_preprocessing = False  # use this only at your first run on the dataset
     calc_features = False  # calculates the selected features
-    use_second_dev_classification_method = True # True: classifies with second order deviation method
+    use_second_dev_classification_method = False # True: classifies with second order deviation method
     global dir_root # the root directory of your data
     dir_root = 'C:\Users\Andreas\Desktop\prvc\InterestingnessData2016'
 
@@ -110,12 +110,11 @@ def main():
 
     # get interestingness
     y_train = get_target_vec(img_dirs_training)
-    # y_test = get_target_vec(img_dirs_test)
 
     #
     # train and test svm
     #
-    C = 1.0  # SVM regularization parameter
+    C = 0.1  # SVM regularization parameter
     svc = svm.SVC(kernel='rbf', C=C, probability=True)
 
     # train svm
@@ -134,7 +133,6 @@ def main():
 
     # calc final classification
     if use_second_dev_classification_method:
-        #raise NotImplementedError
 
         probability = y_probas[:, 1]
         x_vals = np.asarray(range(0, len(probability)))
@@ -181,18 +179,20 @@ def main():
     submission_format = gen_submission_format(results)
     save_submission.save_submission(submission_format, runname)
 
+    #read ground truth of testset
+    img_dirs_test = read_img_dirs_and_gt(dir_test_data)
+    y_test = get_target_vec(img_dirs_test)
 
-    """
-    scores = cross_val_score(svc, X, y, cv=10, scoring='average_precision')
-    predictions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
+    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
+    #predictions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
 
     # find border between interesting and uninteresting
 
     print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-    print("Mean Average Precision - Version 1: %0.2f" % avg_precision_score_v1)
-    print("Mean Average Precision - Version 2: %0.2f" % avg_precision_score_v2)
+    #print("Mean Average Precision - Version 1: %0.2f" % avg_precision_score_v1)
+    #print("Mean Average Precision - Version 2: %0.2f" % avg_precision_score_v2)
     
-    """
+
     print("finished.")
 
 if __name__ == '__main__': main()
