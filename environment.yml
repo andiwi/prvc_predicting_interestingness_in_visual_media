@@ -1,12 +1,14 @@
 name: prvc
 channels:
   - menpo
+  - glemaitre
 dependencies:
   - python=2
   - numpy
   - matplotlib
   - opencv=2.4.11
   - scikit-learn
+  - imbalanced-learn
   - pip
   - pip:
     - Cython

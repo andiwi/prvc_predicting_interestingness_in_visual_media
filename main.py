@@ -10,6 +10,7 @@ from sklearn.model_selection import cross_val_score, cross_val_predict
 
 import numpy as np
 import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE
 
 import file_handler
 from postprocessing.postprocessing import gen_submission_format
@@ -49,7 +50,7 @@ def main():
         # Features.Lbp_L1,
         # Features.Lbp_L2,
         # Features.Gist,
-        Features.CNN_fc7,
+         Features.CNN_fc7,
         # Features.CNN_prob
     ]
 
@@ -90,8 +91,8 @@ def main():
         features_test = feature_files.load_features(img_dirs_test, feature_names)
 
     # scale features (because svm is not scale invariant)
-    features_train = scale_features(features_train)
-    features_test = scale_features(features_test)
+    #features_train = scale_features(features_train)
+    #features_test = scale_features(features_test)
 
     if Features.Face_bb in feature_names:
         # bring bounding box feature matrices to same shape
@@ -111,30 +112,46 @@ def main():
     # get interestingness
     y_train = get_target_vec(img_dirs_training)
 
+    #upsampling of class 'interesting' via SMOTE
+    sm = SMOTE()
+    X_train_upsampled, y_train_upsampled = sm.fit_sample(X_train, y_train)
+    X_train = X_train_upsampled
+    y_train = y_train_upsampled
+
     #
     # train and test svm
     #
     C = 0.1  # SVM regularization parameter
-    svc = svm.SVC(kernel='rbf', C=C, probability=True)
+    svc = svm.SVC(kernel='rbf', C=C, probability=True) #class_weight='balanced'
 
     # train svm
     svc.fit(X_train, y_train)
     # classify test set
-    y_probas = svc.predict_proba(X_test)
+    y_scores = svc.decision_function(X_test)
+    y_predicted = svc.predict(X_test)
 
-    # reassign probabilities to images
+    if np.ptp(y_scores) != 0:
+        # Normalised [0,1]
+        y_scores = (y_scores - np.max(y_scores)) / -np.ptp(y_scores)
+
+
+    #random
+    #y_scores = np.random.uniform(0, 1, size=(2342,2))
+
+    # reassign probabilities and classification to images
     counter = 0
     results = OrderedDict()
     for img_dir in features_test.keys():
         results[img_dir] = OrderedDict()
-        results[img_dir]['probability'] = y_probas[counter][1]
+        results[img_dir]['probability'] = y_scores[counter]
+        results[img_dir]['classification'] = y_predicted[counter]
         counter = counter + 1
-
 
     # calc final classification
     if use_second_dev_classification_method:
+        #order scores, calc threshold and overwrite classification result
 
-        probability = y_probas[:, 1]
+        probability = y_scores
         x_vals = np.asarray(range(0, len(probability)))
 
         # sort probability
@@ -147,9 +164,9 @@ def main():
         diff_2nd = np.diff(proba_smooth, 2)
 
         # find first point above threshold
-        thresh = 0.005
+        thresh = 0.01
         limitIdx = None  # This position corresponds to the limit between non interesting and interesting shots/key-frames.
-        for i in range(len(diff_2nd)):
+        for i in range(2, len(diff_2nd)):
             if diff_2nd[i] > thresh:
                 limitIdx = i
                 break
@@ -166,15 +183,11 @@ def main():
 
         limitProba = proba_smooth[limitIdx]
 
-    else:
-        limitProba = 0.5
-
-
-    for img_dir in results:
-        if results[img_dir]['probability'] > limitProba:
-            results[img_dir]['classification'] = 1
-        else:
-            results[img_dir]['classification'] = 0
+        for img_dir in results:
+            if results[img_dir]['probability'] > limitProba:
+                results[img_dir]['classification'] = 1
+            else:
+                results[img_dir]['classification'] = 0
 
     submission_format = gen_submission_format(results)
     save_submission.save_submission(submission_format, runname)
