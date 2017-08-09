@@ -1,4 +1,6 @@
 import os
+import platform
+from warnings import warn
 
 import numpy as np
 import scipy.io as sio
@@ -16,8 +18,12 @@ def load_precalc_feature(img_dir, feature_name):
     :return: numpy array of features of all imgs in path_to_imgs directory
     '''
 
-    feature_root_dir = os.path.join(img_dir[:img_dir.find('/videos')], 'features')
-    img_name = img_dir[img_dir.rfind('/')+1:]
+    if platform.system() == 'Linux':
+        feature_root_dir = os.path.join(img_dir[:img_dir.find('/videos')], 'features') #Linux system
+        img_name = img_dir[img_dir.rfind('/') + 1:]
+    else:
+        feature_root_dir = os.path.join(img_dir[:img_dir.find('\\videos')], 'features') #windows system
+        img_name = img_dir[img_dir.rfind('\\') + 1:]
 
     if feature_name == Features.DenseSIFT_L0:
         feature = _denseSIFT_fe(feature_root_dir, img_name, level=0)
@@ -64,7 +70,7 @@ def _colorHist_fe(feature_root_path, img_name):
 
         if (matfile_path is None):
             version = -1
-            print 'STOP'
+            warn('File does not exist. {}'.format(matfile_path))
 
     img_features = sio.loadmat(matfile_path)
     if (version == 1):
@@ -80,6 +86,7 @@ def _denseSIFT_fe(feature_root_path, img_name, level):
 
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if (matfile_path is None):
+        warn('File does not exist. {}'.format(matfile_path))
         return None
     else:
         img_features = sio.loadmat(matfile_path)
@@ -98,6 +105,7 @@ def _hog_fe(feature_root_path, img_name, level):
 
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if (matfile_path is None):
+        warn('File does not exist. {}'.format(matfile_path))
         return None
     else:
         img_features = sio.loadmat(matfile_path)
@@ -116,6 +124,7 @@ def _lbp_fe(feature_root_path, img_name, level):
 
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if (matfile_path is None):
+        warn('File does not exist. {}'.format(matfile_path))
         return None
     else:
         img_features = sio.loadmat(matfile_path)
@@ -134,6 +143,7 @@ def _gist_fe(feature_root_path, img_name):
 
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if (matfile_path is None):
+        warn('File does not exist. {}'.format(matfile_path))
         return None
     else:
         img_features = sio.loadmat(matfile_path)
@@ -141,21 +151,46 @@ def _gist_fe(feature_root_path, img_name):
 
 def _cnn_fc7(feature_root_path, img_name):
     path = os.path.join(feature_root_path, 'Features_From_FudanUniversity', 'Image_Subtask', 'CNN', 'fc7')
+    version = 1
 
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if matfile_path is None:
-        return np.zeros(4096)
-    else:
+        version = 2
+        #check if file withoud .jpg exist (testset)
+        matfile_path = get_abs_path_of_file(path, img_name[:len(img_name)-4] + '.mat')
+
+        if matfile_path is None:
+            version = 3
+            warn('File does not exist. {}'.format(matfile_path))
+
+    if version == 1:
         img_features = sio.loadmat(matfile_path)
         return img_features['AlexNet_fc7'][0]
+    elif version == 2:
+        img_features = sio.loadmat(matfile_path)
+        return img_features['fc7'][0]
+    else:
+        return np.zeros(4096)
 
 def _cnn_prob(feature_root_path, img_name):
     path = os.path.join(feature_root_path, 'Features_From_FudanUniversity', 'Image_Subtask', 'CNN', 'prob')
-
+    version = 1
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if matfile_path is None:
-        return np.zeros(1000)
-    else:
+        # check if file withoud .jpg exist (testset)
+        version = 2
+        matfile_path = get_abs_path_of_file(path, img_name[:len(img_name) - 4] + '.mat')
+
+        if matfile_path is None:
+            version = 3
+            warn('File does not exist. {}'.format(matfile_path))
+
+    if version == 1:
         img_features = sio.loadmat(matfile_path)
         return img_features['AlexNet_prob'][0]
+    elif version == 2:
+        img_features = sio.loadmat(matfile_path)
+        return img_features['prob'][0]
+    else:
+        return np.zeros(1000)
 
