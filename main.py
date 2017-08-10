@@ -50,8 +50,8 @@ def main():
         # Features.Lbp_L1,
         # Features.Lbp_L2,
         # Features.Gist,
-         Features.CNN_fc7,
-        # Features.CNN_prob
+        # Features.CNN_fc7,
+         Features.CNN_prob
     ]
 
     runname = 1
