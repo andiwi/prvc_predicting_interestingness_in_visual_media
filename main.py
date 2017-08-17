@@ -17,12 +17,14 @@ from postprocessing.postprocessing import gen_submission_format
 import preprocessing.preprocessing as prvc_preprocessing
 from feature_extraction import feature_calculation
 from feature_extraction.feature_processing import scale_features, \
-    gen_final_feature_matrix, get_target_vec, make_face_bb_equal_col_size, make_face_bb_train_test_equal_col_size
+    gen_final_feature_matrix, get_target_vec, make_face_bb_equal_col_size, make_face_bb_train_test_equal_col_size, \
+    gen_feature_matrices_per_feature
 from Features import Features
 from file_handler import feature_files, save_submission
 from file_handler.read_gt_file import read_img_dirs_and_gt
 from file_handler.read_imgs import read_img_dirs
 from helper import box_filter
+from predict import predict
 
 
 def main():
@@ -40,7 +42,7 @@ def main():
         # Features.Edge_hist_v2,
         # Features.Symmetry,
         # Features.Hsv_hist,
-        # Features.DenseSIFT_L0,
+         Features.DenseSIFT_L0,
         # Features.DenseSIFT_L1,
         # Features.DenseSIFT_L2,
         # Features.Hog_L0,
@@ -49,9 +51,9 @@ def main():
         # Features.Lbp_L0,
         # Features.Lbp_L1,
         # Features.Lbp_L2,
-        # Features.Gist,
+         Features.Gist,
         # Features.CNN_fc7,
-         Features.CNN_prob
+        # Features.CNN_prob
     ]
 
     runname = 1
@@ -90,9 +92,7 @@ def main():
         features_train = feature_files.load_features(img_dirs_training.keys(), feature_names)
         features_test = feature_files.load_features(img_dirs_test, feature_names)
 
-    # scale features (because svm is not scale invariant)
-    #features_train = scale_features(features_train)
-    #features_test = scale_features(features_test)
+    print('features loaded.')
 
     if Features.Face_bb in feature_names:
         # bring bounding box feature matrices to same shape
@@ -101,111 +101,206 @@ def main():
         features_test = make_face_bb_equal_col_size(features_test)
         features_train, features_test = make_face_bb_train_test_equal_col_size(features_train, features_test)
 
-    # generate final feature matrix
-    X_train = gen_final_feature_matrix(features_train)
-    X_test = gen_final_feature_matrix(features_test)
+    X_trains = gen_feature_matrices_per_feature(features_train)
+    X_tests = gen_feature_matrices_per_feature(features_test)
 
-    # scale again (different features in one feature vector (row)
-    # X_train = scale_feature_vec(X_train)
-    # X_test = scale_feature_vec(X_test)
+    # scale features (because svm is not scale invariant)
+    X_trains_scaled = scale_features(X_trains)
+    X_tests_scaled = scale_features(X_tests)
+
+    # generate final feature matrix
+    X_train = gen_final_feature_matrix(X_trains)
+    X_test = gen_final_feature_matrix(X_tests)
+
+    X_train_scaled = gen_final_feature_matrix(X_trains_scaled)
+    X_test_scaled = gen_final_feature_matrix(X_tests_scaled)
+
+    #DEBUG save
+    #np.savetxt('C:\Users\Andreas\Desktop\\X_train_fc7.txt.gz', X_train)
+    #np.savetxt('C:\Users\Andreas\Desktop\\X_train_fc7.txt.gz_scaled.txt.gz', X_train_scaled)
+    #np.savetxt('C:\Users\Andreas\Desktop\\X_test_fc7.txt.gz', X_test)
+    #np.savetxt('C:\Users\Andreas\Desktop\\X_test_fc7.txt.gz_scaled.txt.gz', X_test_scaled)
 
     # get interestingness
     y_train = get_target_vec(img_dirs_training)
 
-    #upsampling of class 'interesting' via SMOTE
-    sm = SMOTE()
-    X_train_upsampled, y_train_upsampled = sm.fit_sample(X_train, y_train)
-    X_train = X_train_upsampled
-    y_train = y_train_upsampled
 
+    #upsampling of class 'interesting' via SMOTE
+    #sm = SMOTE()
+    #X_train_upsampled, y_train_upsampled = sm.fit_sample(X_train, y_train)
+    #X_train = X_train_upsampled
+    #y_train = y_train_upsampled
+
+    
     #
     # train and test svm
     #
-    C = 0.1  # SVM regularization parameter
-    svc = svm.SVC(kernel='rbf', C=C, probability=True) #class_weight='balanced'
+    #C = 0.125  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced') #class_weight='balanced'
+    #results_1 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_1 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
+#
+    #C = 0.25  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced')  # class_weight='balanced'
+    #results_2 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_2 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
+#
+    #C = 0.5  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced')  # class_weight='balanced'
+    #results_3 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_3 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
+#
+    #C = 1  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced')  # class_weight='balanced'
+    #results_4 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_4 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
+#
+    #C = 2  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced')  # class_weight='balanced'
+    #results_5 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_5 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
+#
+    #C = 4  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced')  # class_weight='balanced'
+    #results_6 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_6 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
+#
+    #C = 8  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced')  # class_weight='balanced'
+    #results_7 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_7 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
+#
+    #C = 16  # SVM regularization parameter
+    #svc = svm.SVC(kernel='rbf', C=C, class_weight='balanced')  # class_weight='balanced'
+    #results_8 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled_8 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+    #                         use_second_dev_classification_method)
 
-    # train svm
-    svc.fit(X_train, y_train)
-    # classify test set
-    y_scores = svc.decision_function(X_test)
-    y_predicted = svc.predict(X_test)
 
-    if np.ptp(y_scores) != 0:
-        # Normalised [0,1]
-        y_scores = (y_scores - np.max(y_scores)) / -np.ptp(y_scores)
+    # submission_format = gen_submission_format(results_1)
+    # save_submission.save_submission(submission_format, 1)
+    # submission_format = gen_submission_format(results_scaled_1)
+    # save_submission.save_submission(submission_format, 2)
+    #
+    # submission_format = gen_submission_format(results_2)
+    # save_submission.save_submission(submission_format, 3)
+    # submission_format = gen_submission_format(results_scaled_2)
+    # save_submission.save_submission(submission_format, 4)
+    #
+    # submission_format = gen_submission_format(results_3)
+    # save_submission.save_submission(submission_format, 5)
+    # submission_format = gen_submission_format(results_scaled_3)
+    # save_submission.save_submission(submission_format, 6)
+    #
+    # submission_format = gen_submission_format(results_4)
+    # save_submission.save_submission(submission_format, 7)
+    # submission_format = gen_submission_format(results_scaled_4)
+    # save_submission.save_submission(submission_format, 8)
+    #
+    # submission_format = gen_submission_format(results_5)
+    # save_submission.save_submission(submission_format, 9)
+    # submission_format = gen_submission_format(results_scaled_5)
+    # save_submission.save_submission(submission_format, 10)
+    #
+    # submission_format = gen_submission_format(results_6)
+    # save_submission.save_submission(submission_format, 11)
+    # submission_format = gen_submission_format(results_scaled_6)
+    # save_submission.save_submission(submission_format, 12)
+    #
+    # submission_format = gen_submission_format(results_7)
+    # save_submission.save_submission(submission_format, 13)
+    # submission_format = gen_submission_format(results_scaled_7)
+    # save_submission.save_submission(submission_format, 14)
+    #
+    # submission_format = gen_submission_format(results_8)
+    # save_submission.save_submission(submission_format, 15)
+    # submission_format = gen_submission_format(results_scaled_8)
+    # save_submission.save_submission(submission_format, 16)
 
+    #LAPI Settings for HSVHist + GIST ---MAP should be 0.1714
+    #print("svm.SVC(kernel='poly', degree=18, gamma=2, class_weight={1 : 10})")
+    #svc = svm.SVC(kernel='poly', degree=18, gamma=2, class_weight={1 : 10})
+    #results = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    #results_scaled = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test, use_second_dev_classification_method)
+    
+    #svc = svm.SVC(kernel='poly', degree=18, gamma=2)
 
-    #random
-    #y_scores = np.random.uniform(0, 1, size=(2342,2))
+    #LAPI Settings for DSIFT + GIST ---MAP should be 0.1398
+    print("svm.SVC(kernel='poly', degree=3, gamma=32, class_weight={1: 10})")
+    svc = svm.SVC(kernel='poly', degree=3, gamma=32, class_weight={1: 10})
+    #svc = svm.SVC(kernel='poly', degree=3, gamma=32)
+    results = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    results_scaled = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test, use_second_dev_classification_method)
 
-    # reassign probabilities and classification to images
-    counter = 0
-    results = OrderedDict()
-    for img_dir in features_test.keys():
-        results[img_dir] = OrderedDict()
-        results[img_dir]['probability'] = y_scores[counter]
-        results[img_dir]['classification'] = y_predicted[counter]
-        counter = counter + 1
+    print("svm.SVC(kernel='poly', degree=3, gamma=32, class_weight='balanced')")
+    svc = svm.SVC(kernel='poly', degree=3, gamma=32, class_weight='balanced')
+    results_2 = predict(svc, X_train, y_train, X_test, features_test, use_second_dev_classification_method)
+    results_scaled_2 = predict(svc, X_train_scaled, y_train, X_test_scaled, features_test,
+                             use_second_dev_classification_method)
 
-    # calc final classification
-    if use_second_dev_classification_method:
-        #order scores, calc threshold and overwrite classification result
-
-        probability = y_scores
-        x_vals = np.asarray(range(0, len(probability)))
-
-        # sort probability
-        probability = np.sort(probability)
-
-        # smooth curve with averaging window
-        proba_smooth = box_filter.smooth(probability, 3)
-
-        # calc second order derivative
-        diff_2nd = np.diff(proba_smooth, 2)
-
-        # find first point above threshold
-        thresh = 0.01
-        limitIdx = None  # This position corresponds to the limit between non interesting and interesting shots/key-frames.
-        for i in range(2, len(diff_2nd)):
-            if diff_2nd[i] > thresh:
-                limitIdx = i
-                break
-
-        if limitIdx is None:
-            limitIdx = i
-
-        # DEBUG
-        plt.plot(x_vals, probability, 'o')
-        plt.plot(x_vals, proba_smooth, 'r-', lw=2)
-        plt.plot(x_vals[limitIdx], proba_smooth[limitIdx], 'go')
-        plt.show()
-        # DEBUG END
-
-        limitProba = proba_smooth[limitIdx]
-
-        for img_dir in results:
-            if results[img_dir]['probability'] > limitProba:
-                results[img_dir]['classification'] = 1
-            else:
-                results[img_dir]['classification'] = 0
-
+    print("save results")
     submission_format = gen_submission_format(results)
-    save_submission.save_submission(submission_format, runname)
+    save_submission.save_submission(submission_format, 1)
+    submission_format = gen_submission_format(results_scaled)
+    save_submission.save_submission(submission_format, 2)
 
+    submission_format = gen_submission_format(results_2)
+    save_submission.save_submission(submission_format, 3)
+    submission_format = gen_submission_format(results_scaled_2)
+    save_submission.save_submission(submission_format, 4)
+
+
+
+    '''
     #read ground truth of testset
     img_dirs_test = read_img_dirs_and_gt(dir_test_data)
     y_test = get_target_vec(img_dirs_test)
 
-    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
-    #predictions = cross_val_predict(svc, X, y, cv=10, method='predict_proba')
 
-    # find border between interesting and uninteresting
-
-    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-    #print("Mean Average Precision - Version 1: %0.2f" % avg_precision_score_v1)
-    #print("Mean Average Precision - Version 2: %0.2f" % avg_precision_score_v2)
     
+    print('UNSCALED')
+    print('LAPI 1:10')
+    svc = svm.SVC(kernel='poly', degree=18, gamma=2, class_weight={1: 10})
+    scores = cross_val_score(svc, X_test, y_test, cv=3, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
+    print('LAPI')
+    svc = svm.SVC(kernel='poly', degree=18, gamma=2)
+    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+    print('LAPI c=0.1')
+    svc = svm.SVC(kernel='poly', degree=18, gamma=2, C=0.1)
+    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+    print('LAPI balanced')
+    svc = svm.SVC(kernel='poly', degree=18, gamma=2, class_weight='balanced')
+    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+    print('LAPI like libsvm balanced')
+    svc = svm.SVC(kernel='poly', degree=18, gamma=2, class_weight='balanced', cache_size=100)
+    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+    print('LAPI like libsvm 1 to 10')
+    svc = svm.SVC(kernel='poly', degree=18, gamma=2, class_weight={1: 10}, cache_size=100)
+    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+    print('LAPI like libsvm 1 to 10, C=0.25')
+    svc = svm.SVC(kernel='poly', C=0.25, degree=18, gamma=2, class_weight={1: 10}, cache_size=100)
+    scores = cross_val_score(svc, X_test, y_test, cv=10, scoring='average_precision')
+    print("Mean Average Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    '''
     print("finished.")
 
 if __name__ == '__main__': main()

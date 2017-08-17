@@ -6,7 +6,7 @@ from Features import Features
 from helper import np_helper
 
 
-def scale_features(features):
+def scale_features_old(features):
     """
     scales all feature vectors in features
     :param features:
@@ -23,8 +23,25 @@ def scale_features(features):
                 scaled_features[img_dir][feature_name] = features[img_dir][feature_name]
             else:
                 scaled_features[img_dir][feature_name] = preprocessing.scale(features[img_dir][feature_name])
+                #scaled_features[img_dir][feature_name] = preprocessing.minmax_scale(features[img_dir][feature_name])
 
     return scaled_features
+
+def scale_features(feature_matrices):
+    """
+    scales each feature matrix in feature matrices
+    scaled matrix has zero mean and unit variance
+    :param feature_matrices:
+    :type feature_matrices: dict
+    :return: scaled feature matrices
+    :rtype: dict
+    """
+    scaled_feature_matrices = dict()
+    for feature_name in feature_matrices:
+        scaled_matrix = preprocessing.scale(feature_matrices[feature_name])
+        scaled_feature_matrices[feature_name] = scaled_matrix
+
+    return scaled_feature_matrices
 
 def scale_feature_vec(feature_vecs):
     """
@@ -95,7 +112,34 @@ def reshape_arrays_1D_to_2D(features):
     return reshaped_features
 
 
-def gen_final_feature_matrix(features):
+def gen_feature_matrices_per_feature(features):
+    """
+    generates feature matrix for each feature which can be used to train SVM
+    :param features:
+    :type features: dict
+    :return: feature_matrices: (feature_name, matrix)
+    :rtype: dict
+    """
+    feature_matrices = dict()
+
+    for img_dir in features:
+        for feature_name in features[img_dir]:
+            if Features.is_single_val_feature(feature_name):
+                vector = np.asscalar(features[img_dir][feature_name])
+            else:
+                vector = features[img_dir][feature_name].tolist()
+
+            #add vector to matrix
+            if feature_name not in feature_matrices:
+                feature_matrices[feature_name] = list()
+
+            feature_matrices[feature_name].append(vector)
+
+    return feature_matrices
+
+
+
+def gen_final_feature_matrix_old(features):
     """
     generates the final feature matrix which can be used to train SVM
     :param features:
@@ -117,6 +161,24 @@ def gen_final_feature_matrix(features):
         final_feature_mat.append(final_feature_vec)
 
     return np.asarray(final_feature_mat)
+
+def gen_final_feature_matrix(feature_matrices):
+    """
+    generates the final feature matrix which can be used to train SVM (concats features into one matrix)
+    :param feature_matrices:
+    :type feature_matrices: dict
+    :return: final feature matrix
+    :rtype: np.array
+    """
+    final_feature_mat = np.array([])
+
+    for feature_name in feature_matrices:
+        if final_feature_mat.size == 0: #list is empty
+            final_feature_mat = np.asarray(feature_matrices[feature_name])
+        else:
+            final_feature_mat = np.concatenate((final_feature_mat, feature_matrices[feature_name]), axis=1)
+
+    return final_feature_mat
 
 
 def get_target_vec(img_dirs):

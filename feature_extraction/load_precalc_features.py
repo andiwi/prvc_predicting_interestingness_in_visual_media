@@ -87,17 +87,25 @@ def _denseSIFT_fe(feature_root_path, img_name, level):
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if (matfile_path is None):
         warn('File does not exist. {}'.format(matfile_path))
-        return None
+        if level == 0:
+            return np.zeros(300)
+        elif level == 1:
+            return np.zeros(1200)
+        elif level == 2:
+            return np.zeros(4800)
+        else:
+            raise NotImplementedError
+
     else:
         img_features = sio.loadmat(matfile_path)
         if level == 0:
-            return img_features['hists']['L0'][0][0]
+            return img_features['hists']['L0'][0][0][:,0]
         elif level == 1:
-            return img_features['hists']['L1'][0][0]
+            return img_features['hists']['L1'][0][0][:,0]
         elif level == 2:
-            return img_features['hists']['L2'][0][0]
+            return img_features['hists']['L2'][0][0][:,0]
         else:
-            return None
+            raise NotImplementedError
 
 
 def _hog_fe(feature_root_path, img_name, level):
@@ -144,10 +152,10 @@ def _gist_fe(feature_root_path, img_name):
     matfile_path = get_abs_path_of_file(path, img_name + '.mat')
     if (matfile_path is None):
         warn('File does not exist. {}'.format(matfile_path))
-        return None
+        return np.zeros(512)
     else:
         img_features = sio.loadmat(matfile_path)
-        return img_features['descrs']
+        return img_features['descrs'][:,0]
 
 def _cnn_fc7(feature_root_path, img_name):
     path = os.path.join(feature_root_path, 'Features_From_FudanUniversity', 'Image_Subtask', 'CNN', 'fc7')
